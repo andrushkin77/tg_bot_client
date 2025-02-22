@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f8f8f8;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #d61a1a;
+        }
+
+        .image-container {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        img {
+            width: 100%;
+            display: block;
+            border-radius: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            transition: border 0.3s ease-in-out;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            border-color: #d61a1a;
+        }
+
+        textarea {
+            resize: none;
+            height: 60px;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background: #d61a1a;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .button:hover {
+            background: #b91515;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Оформление заказа</h2>
+
+        <div class="image-container">
+            <img id="orderImage" src="" alt="Композиция">
+        </div>
+
+        <div class="input-group">
+            <label for="deliveryType">Способ получения:</label>
+            <select id="deliveryType">
+                <option value="Самовывоз">Самовывоз</option>
+                <option value="Доставка">Доставка</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="deliveryTime">Время получения:</label>
+            <input type="time" id="deliveryTime">
+        </div>
+
+        <div class="input-group">
+            <label for="comment">Комментарий:</label>
+            <textarea id="comment" placeholder="Ваши пожелания..."></textarea>
+        </div>
+
+        <button class="button" onclick="submitOrder()">Разместить заказ</button>
+    </div>
+
+  <script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();  // Развернуть Mini App
+
+    let orderImage = document.getElementById("orderImage");
+    let params = new URLSearchParams(window.location.search);
+    let imageUrl = params.get("image_url");
+
+    if (imageUrl) {
+        orderImage.src = imageUrl;
+    } else {
+        orderImage.style.display = "none";
+    }
+
+    function submitOrder() {
+        let orderData = {
+            deliveryType: document.getElementById("deliveryType").value,
+            deliveryTime: document.getElementById("deliveryTime").value,
+            comment: document.getElementById("comment").value,
+        };
+
+        console.log("📤 Отправка данных в бота:", orderData);
+
+        if (window.Telegram.WebApp) {
+            Telegram.WebApp.sendData(JSON.stringify(orderData));
+            console.log("✅ Данные успешно отправлены в бота");
+            Telegram.WebApp.close();
+        } else {
+            console.log("❌ Ошибка: Telegram WebApp API недоступен");
+        }
+    }
+</script>
+
+
+</body>
+</html>
