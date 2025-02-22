@@ -127,42 +127,39 @@
         <button class="button" onclick="submitOrder()">Разместить заказ</button>
     </div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();  // Развернуть Mini App на весь экран
+  <script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();  // Развернуть Mini App
 
-        let orderImage = document.getElementById("orderImage");
-        let params = new URLSearchParams(window.location.search);
-        let imageUrl = params.get("image_url");
+    let orderImage = document.getElementById("orderImage");
+    let params = new URLSearchParams(window.location.search);
+    let imageUrl = params.get("image_url");
 
-        if (imageUrl) {
-            orderImage.src = imageUrl;
+    if (imageUrl) {
+        orderImage.src = imageUrl;
+    } else {
+        orderImage.style.display = "none";
+    }
+
+    function submitOrder() {
+        let orderData = {
+            deliveryType: document.getElementById("deliveryType").value,
+            deliveryTime: document.getElementById("deliveryTime").value,
+            comment: document.getElementById("comment").value,
+        };
+
+        console.log("📤 Отправка данных в бота:", orderData);
+
+        if (window.Telegram.WebApp) {
+            Telegram.WebApp.sendData(JSON.stringify(orderData));
+            console.log("✅ Данные успешно отправлены в бота");
+            Telegram.WebApp.close();
         } else {
-            orderImage.style.display = "none";
+            console.log("❌ Ошибка: Telegram WebApp API недоступен");
         }
+    }
+</script>
 
-        function submitOrder() {
-            let orderData = {
-                deliveryType: document.getElementById("deliveryType").value,
-                deliveryTime: document.getElementById("deliveryTime").value,
-                comment: document.getElementById("comment").value,
-            };
-
-            function submitOrder() {
-    let orderData = {
-        deliveryType: document.getElementById("deliveryType").value,
-        deliveryTime: document.getElementById("deliveryTime").value,
-        comment: document.getElementById("comment").value,
-    };
-
-    console.log("📤 Отправка данных в бота:", orderData);  // Лог в консоли браузера
-    Telegram.WebApp.sendData(JSON.stringify(orderData));  // Отправляем данные в бота
-    Telegram.WebApp.close();  // Закрываем Mini App
-}
-            tg.sendData(JSON.stringify(orderData));  // Отправляем данные в бота
-            tg.close();  // Закрываем Mini App
-        }
-    </script>
 
 </body>
 </html>
