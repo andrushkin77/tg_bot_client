@@ -148,6 +148,17 @@
                 comment: document.getElementById("comment").value,
             };
 
+            function submitOrder() {
+    let orderData = {
+        deliveryType: document.getElementById("deliveryType").value,
+        deliveryTime: document.getElementById("deliveryTime").value,
+        comment: document.getElementById("comment").value,
+    };
+
+    console.log("📤 Отправка данных в бота:", orderData);  // Лог в консоли браузера
+    Telegram.WebApp.sendData(JSON.stringify(orderData));  // Отправляем данные в бота
+    Telegram.WebApp.close();  // Закрываем Mini App
+}
             tg.sendData(JSON.stringify(orderData));  // Отправляем данные в бота
             tg.close();  // Закрываем Mini App
         }
