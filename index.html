@@ -146,7 +146,7 @@
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand();  // Развернуть Mini App
+        tg.expand();
 
         let orderImage = document.getElementById("orderImage");
         let params = new URLSearchParams(window.location.search);
@@ -171,31 +171,50 @@
             let successMessage = document.getElementById("success");
             let errorMessage = document.getElementById("error");
 
-            submitButton.disabled = true;  // Блокируем кнопку, чтобы избежать дублирования
+            submitButton.disabled = true;
 
-            if (window.Telegram.WebApp) {
-                try {
-                    Telegram.WebApp.sendData(JSON.stringify(orderData));
+            try {
+                Telegram.WebApp.sendData(JSON.stringify(orderData));
+                console.log("✅ Данные успешно отправлены в бота");
 
-                    console.log("✅ Данные успешно отправлены в бота");
+                successMessage.style.display = "block";
+                errorMessage.style.display = "none";
 
+                setTimeout(() => {
+                    Telegram.WebApp.close();
+                }, 700);
+            } catch (error) {
+                console.error("❌ Ошибка при отправке данных через sendData:", error);
+                
+                console.log("🔄 Пробуем альтернативный способ отправки...");
+
+                fetch("https://api.telegram.org/bot{YOUR_BOT_TOKEN}/sendMessage", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        chat_id: "{YOUR_CHAT_ID}",
+                        text: JSON.stringify(orderData)
+                    })
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error("Ошибка HTTP " + response.status);
+                    }
+                    return response.json();
+                }).then(data => {
+                    console.log("✅ Альтернативная отправка успешна:", data);
                     successMessage.style.display = "block";
                     errorMessage.style.display = "none";
-
                     setTimeout(() => {
                         Telegram.WebApp.close();
                     }, 700);
-                } catch (error) {
-                    console.error("❌ Ошибка при отправке данных:", error);
+                }).catch(fetchError => {
+                    console.error("❌ Ошибка при отправке через fetch:", fetchError);
                     errorMessage.style.display = "block";
                     successMessage.style.display = "none";
-                    submitButton.disabled = false; // Разблокируем кнопку при ошибке
-                }
-            } else {
-                console.log("❌ Ошибка: Telegram WebApp API недоступен");
-                errorMessage.style.display = "block";
-                successMessage.style.display = "none";
-                submitButton.disabled = false;
+                    submitButton.disabled = false;
+                });
             }
         }
     </script>
