@@ -96,11 +96,18 @@
             background: #b91515;
         }
 
-        .error-message {
-            color: red;
+        .error-message, .success-message {
             font-size: 14px;
             margin-top: 10px;
             display: none;
+        }
+
+        .error-message {
+            color: red;
+        }
+
+        .success-message {
+            color: green;
         }
     </style>
 </head>
@@ -131,9 +138,10 @@
             <textarea id="comment" placeholder="Ваши пожелания..."></textarea>
         </div>
 
-        <button class="button" onclick="submitOrder()">Разместить заказ</button>
+        <button class="button" id="submitButton" onclick="submitOrder()">Разместить заказ</button>
 
         <div id="error" class="error-message">❌ Ошибка отправки данных. Попробуйте снова.</div>
+        <div id="success" class="success-message">✅ Заказ успешно отправлен!</div>
     </div>
 
     <script>
@@ -159,18 +167,35 @@
 
             console.log("📤 Отправка данных в бота:", orderData);
 
+            let submitButton = document.getElementById("submitButton");
+            let successMessage = document.getElementById("success");
+            let errorMessage = document.getElementById("error");
+
+            submitButton.disabled = true;  // Блокируем кнопку, чтобы избежать дублирования
+
             if (window.Telegram.WebApp) {
                 try {
                     Telegram.WebApp.sendData(JSON.stringify(orderData));
+
                     console.log("✅ Данные успешно отправлены в бота");
-                    setTimeout(() => Telegram.WebApp.close(), 500);  // Добавляем задержку перед закрытием
+
+                    successMessage.style.display = "block";
+                    errorMessage.style.display = "none";
+
+                    setTimeout(() => {
+                        Telegram.WebApp.close();
+                    }, 700);
                 } catch (error) {
                     console.error("❌ Ошибка при отправке данных:", error);
-                    document.getElementById("error").style.display = "block";
+                    errorMessage.style.display = "block";
+                    successMessage.style.display = "none";
+                    submitButton.disabled = false; // Разблокируем кнопку при ошибке
                 }
             } else {
                 console.log("❌ Ошибка: Telegram WebApp API недоступен");
-                document.getElementById("error").style.display = "block";
+                errorMessage.style.display = "block";
+                successMessage.style.display = "none";
+                submitButton.disabled = false;
             }
         }
     </script>
