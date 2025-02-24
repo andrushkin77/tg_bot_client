@@ -7,21 +7,131 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: #f8f8f8; color: #333; text-align: center; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h2 { font-size: 22px; margin-bottom: 15px; color: #d61a1a; }
-        .image-container { background: #fff; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
-        img { width: 100%; display: block; border-radius: 10px; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; }
-        select, input, textarea { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; outline: none; transition: border 0.3s ease-in-out; }
-        select:focus, input:focus, textarea:focus { border-color: #d61a1a; }
-        textarea { resize: none; height: 60px; }
-        .button { display: block; width: 100%; padding: 14px; font-size: 18px; font-weight: bold; color: white; background: #d61a1a; border: none; border-radius: 10px; cursor: pointer; transition: background 0.3s ease; }
-        .button:hover { background: #b91515; }
-        .error-message, .success-message { font-size: 14px; margin-top: 10px; display: none; }
-        .error-message { color: red; }
-        .success-message { color: green; }
+        body { background-color: #f5f5f5; color: #333; text-align: center; padding: 20px; }
+        
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #d61a1a;
+        }
+
+        .image-container {
+            background: linear-gradient(135deg, #ff6347, #ff2e63);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            padding: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        img {
+            width: 100%;
+            display: block;
+            border-radius: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+            padding: 0 10px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s ease-in-out;
+            background: #f8f8f8;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            border-color: #ff2e63;
+            background: #fff;
+        }
+
+        textarea {
+            resize: none;
+            height: 60px;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #ff6347, #ff2e63);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            background: linear-gradient(135deg, #ff2e63, #ff6347);
+        }
+
+        .delivery-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+
+        .delivery-option {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .delivery-option.selected {
+            border-color: #ff2e63;
+            background: #ff2e63;
+            color: white;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -33,12 +143,9 @@
             <img id="orderImage" src="" alt="Композиция">
         </div>
 
-        <div class="input-group">
-            <label for="deliveryType">Способ получения:</label>
-            <select id="deliveryType">
-                <option value="Самовывоз">Самовывоз</option>
-                <option value="Доставка">Доставка</option>
-            </select>
+        <div class="delivery-options">
+            <div class="delivery-option selected" id="pickup">Самовывоз</div>
+            <div class="delivery-option" id="delivery">Доставка</div>
         </div>
 
         <div class="input-group">
@@ -51,10 +158,9 @@
             <textarea id="comment" placeholder="Ваши пожелания..."></textarea>
         </div>
 
-        <button class="button" id="submitButton" onclick="submitOrder()">Разместить заказ</button>
+        <button class="button" onclick="submitOrder()">Разместить заказ</button>
 
         <div id="error" class="error-message">❌ Ошибка отправки данных. Попробуйте снова.</div>
-        <div id="success" class="success-message">✅ Заказ успешно отправлен!</div>
     </div>
 
     <script>
@@ -71,54 +177,30 @@
             orderImage.style.display = "none";
         }
 
-        async function submitOrder() {
+        let pickupBtn = document.getElementById("pickup");
+        let deliveryBtn = document.getElementById("delivery");
+
+        pickupBtn.addEventListener("click", () => selectDeliveryOption("Самовывоз"));
+        deliveryBtn.addEventListener("click", () => selectDeliveryOption("Доставка"));
+
+        function selectDeliveryOption(option) {
+            pickupBtn.classList.remove("selected");
+            deliveryBtn.classList.remove("selected");
+
+            if (option === "Самовывоз") pickupBtn.classList.add("selected");
+            else deliveryBtn.classList.add("selected");
+        }
+
+        function submitOrder() {
             let orderData = {
-                deliveryType: document.getElementById("deliveryType").value,
+                deliveryType: pickupBtn.classList.contains("selected") ? "Самовывоз" : "Доставка",
                 deliveryTime: document.getElementById("deliveryTime").value,
                 comment: document.getElementById("comment").value,
             };
 
-            console.log("📤 Отправка данных в бота:", orderData);
-
-            let submitButton = document.getElementById("submitButton");
-            let successMessage = document.getElementById("success");
-            let errorMessage = document.getElementById("error");
-
-            submitButton.disabled = true;
-
-            try {
-                // 🔥 1. Прямой API-запрос в бота
-                let botToken = "7947042875:AAH74wWcNGDD0hXaPqqo9RYZlmI9AZp3BJI";  // ✅ Вставь API-токен бота
-                let chatId = tg.initDataUnsafe.user.id;  // ✅ ID пользователя Telegram
-
-                let response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        text: `📦 Новый заказ:\nСпособ получения: ${orderData.deliveryType}\nВремя: ${orderData.deliveryTime}\nКомментарий: ${orderData.comment}`
-                    })
-                });
-
-                let data = await response.json();
-
-                if (data.ok) {
-                    console.log("✅ Данные успешно отправлены через API");
-                    successMessage.style.display = "block";
-                    errorMessage.style.display = "none";
-
-                    setTimeout(() => {
-                        Telegram.WebApp.close();
-                    }, 700);
-                } else {
-                    throw new Error(`Ошибка Telegram API: ${JSON.stringify(data)}`);
-                }
-            } catch (error) {
-                console.error("❌ Ошибка при отправке данных через API:", error);
-                errorMessage.style.display = "block";
-                successMessage.style.display = "none";
-                submitButton.disabled = false;
-            }
+            console.log("📤 Отправка данных:", orderData);
+            Telegram.WebApp.sendData(JSON.stringify(orderData));
+            setTimeout(() => Telegram.WebApp.close(), 700);
         }
     </script>
 
