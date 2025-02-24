@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Оформление заказа</h2>
+        <div class="order-details">
+            <img id="orderImage" src="" alt="Композиция">
+            <div class="info">
+                <h3 id="orderTitle">Композиция</h3>
+                <p id="orderDescription">Выбранная композиция для оформления заказа.</p>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="deliveryType">Способ получения:</label>
+            <select id="deliveryType">
+                <option value="Самовывоз">Самовывоз</option>
+                <option value="Доставка">Доставка</option>
+            </select>
+        </div>
+        
+        <div id="deliveryAddressGroup" class="input-group" style="display: none;">
+            <label for="deliveryAddress">Адрес доставки:</label>
+            <input type="text" id="deliveryAddress" placeholder="Введите адрес">
+        </div>
+        
+        <div class="input-group">
+            <label for="deliveryTime">Время получения:</label>
+            <input type="time" id="deliveryTime">
+        </div>
+        
+        <div class="input-group">
+            <label for="comment">Комментарий:</label>
+            <textarea id="comment" placeholder="Ваши пожелания..."></textarea>
+        </div>
+        
+        <button class="button" onclick="submitOrder()">Разместить заказ</button>
+    </div>
+    
+    <script src="scripts/order.js"></script>
+</body>
+</html>
