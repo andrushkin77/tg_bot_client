@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказ оформлен!</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Заказ успешно оформлен!</h1>
+        <p>Ваш заказ принят в обработку. Ожидайте подтверждения.</p>
+        <button class="button" onclick="closeApp()">Закрыть</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function closeApp() {
+            Telegram.WebApp.close();
+        }
+    </script>
+</body>
+</html>
