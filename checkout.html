@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение заказа</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Подтверждение заказа</h1>
+        <div class="order-details">
+            <p><strong>Способ получения:</strong> <span id="deliveryType"></span></p>
+            <p><strong>Время получения:</strong> <span id="deliveryTime"></span></p>
+            <p><strong>Комментарий:</strong> <span id="comment"></span></p>
+        </div>
+
+        <button class="button" onclick="confirmOrder()">Подтвердить заказ</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let orderData = JSON.parse(sessionStorage.getItem("orderData"));
+        if (orderData) {
+            document.getElementById("deliveryType").innerText = orderData.deliveryType;
+            document.getElementById("deliveryTime").innerText = orderData.deliveryTime;
+            document.getElementById("comment").innerText = orderData.comment;
+        }
+
+        function confirmOrder() {
+            console.log("✅ Заказ подтвержден:", orderData);
+            Telegram.WebApp.sendData(JSON.stringify(orderData));
+            Telegram.WebApp.close();
+        }
+    </script>
+</body>
+</html>
