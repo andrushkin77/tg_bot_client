@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #13151a;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #1f222a;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #ffcc00;
+        }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #2a2d38;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .order-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+        }
+
+        .details {
+            flex-grow: 1;
+            padding: 0 10px;
+            text-align: left;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background: #ffcc00;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .button:hover {
+            background: #e6b800;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a2d38;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            width: 80%;
+        }
+
+        .modal input, .modal select, .modal textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #1f222a;
+            color: white;
+            font-size: 16px;
+        }
+
+        .modal .save-button {
+            background: #32cd32;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Ваш заказ</h2>
+        <div class="order-item">
+            <img id="orderImage" src="" alt="Композиция">
+            <div class="details">
+                <strong>Композиция</strong>
+                <p>Шары на заказ</p>
+            </div>
+            <button class="button" onclick="openModal()">Редактировать</button>
+        </div>
+        
+        <button class="button" onclick="submitOrder()">Разместить заказ</button>
+    </div>
+
+    <div class="modal" id="editModal">
+        <h3>Редактирование заказа</h3>
+        <label>Способ получения:</label>
+        <select id="deliveryType">
+            <option value="Самовывоз">Самовывоз</option>
+            <option value="Доставка">Доставка</option>
+        </select>
+
+        <label>Время получения:</label>
+        <input type="time" id="deliveryTime">
+
+        <label>Комментарий:</label>
+        <textarea id="comment" placeholder="Ваши пожелания..."></textarea>
+
+        <button class="button save-button" onclick="saveDetails()">Сохранить</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let orderImage = document.getElementById("orderImage");
+        let params = new URLSearchParams(window.location.search);
+        let imageUrl = params.get("image_url");
+
+        if (imageUrl) {
+            orderImage.src = imageUrl;
+        } else {
+            orderImage.style.display = "none";
+        }
+
+        function openModal() {
+            document.getElementById("editModal").style.display = "block";
+        }
+
+        function saveDetails() {
+            document.getElementById("editModal").style.display = "none";
+        }
+
+        function submitOrder() {
+            let orderData = {
+                deliveryType: document.getElementById("deliveryType").value,
+                deliveryTime: document.getElementById("deliveryTime").value,
+                comment: document.getElementById("comment").value,
+            };
+
+            console.log("📤 Отправка данных в бота:", orderData);
+
+            if (window.Telegram.WebApp) {
+                try {
+                    Telegram.WebApp.sendData(JSON.stringify(orderData));
+                    console.log("✅ Данные успешно отправлены в бота");
+                    setTimeout(() => Telegram.WebApp.close(), 500);
+                } catch (error) {
+                    console.error("❌ Ошибка при отправке данных:", error);
+                }
+            } else {
+                console.log("❌ Ошибка: Telegram WebApp API недоступен");
+            }
+        }
+    </script>
+</body>
+</html>
