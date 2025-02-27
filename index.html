@@ -44,10 +44,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 200px; /* Фиксированная высота для изображений */
         }
 
         img {
-            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
             border-radius: 15px;
         }
 
@@ -135,35 +137,43 @@
 
         if (imageUrl) {
             orderImage.src = imageUrl;
+        } else {
+            orderImage.style.display = "none"; // Скрываем контейнер, если нет фото
         }
-        
-        <script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
 
-    console.log("Telegram WebApp API доступен:", window.Telegram?.WebApp);
-    console.log("initData:", window.Telegram.WebApp.initData);
+        function submitOrder() {
+            let orderData = {
+                action: "submit_order",
+                image_url: imageUrl,  // Передаем изображение
+                comment: document.getElementById("comment").value,
+            };
 
-    function submitOrder() {
-        let orderData = {
-            action: "submit_order",
-            deliveryType: document.getElementById("deliveryType").value,
-            deliveryTime: document.getElementById("deliveryTime").value,
-            comment: document.getElementById("comment").value,
-        };
+            console.log("📤 Отправка данных в бота:", orderData);
 
-        console.log("📤 Отправка данных в бота:", orderData);
-
-        try {
-            Telegram.WebApp.sendData(JSON.stringify(orderData));
-            console.log("✅ Данные успешно отправлены в бота");
-            setTimeout(() => Telegram.WebApp.close(), 500);
-        } catch (error) {
-            console.error("❌ Ошибка при отправке данных:", error);
-            document.getElementById("error").style.display = "block";
+            try {
+                Telegram.WebApp.sendData(JSON.stringify(orderData));
+                console.log("✅ Данные успешно отправлены в бота");
+                setTimeout(() => Telegram.WebApp.close(), 500);
+            } catch (error) {
+                console.error("❌ Ошибка при отправке данных:", error);
+            }
         }
-    }
-</script>
+
+        function editOrder() {
+            let editData = {
+                action: "edit_image"
+            };
+
+            console.log("📤 Отправка команды на редактирование:", editData);
+
+            try {
+                Telegram.WebApp.sendData(JSON.stringify(editData));
+                setTimeout(() => Telegram.WebApp.close(), 500);
+            } catch (error) {
+                console.error("❌ Ошибка при отправке команды редактирования:", error);
+            }
+        }
+    </script>
 
 </body>
 </html>
