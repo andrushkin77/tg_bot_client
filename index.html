@@ -27,13 +27,22 @@
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         h2 {
             font-size: 22px;
             margin-bottom: 15px;
-            color: #fff;
             text-align: left;
+        }
+
+        .edit-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #32CD32;
+            font-size: 16px;
+            cursor: pointer;
         }
 
         .image-container {
@@ -44,22 +53,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 200px; /* Фиксированная высота для изображений */
+            padding: 10px;
         }
 
         img {
             max-width: 100%;
-            max-height: 100%;
             border-radius: 15px;
-        }
-
-        .edit-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #32CD32;
-            font-size: 16px;
-            cursor: pointer;
         }
 
         .input-group {
@@ -108,11 +107,35 @@
             background: linear-gradient(90deg, #228B22, #006400);
         }
 
+        .hidden {
+            display: none;
+        }
+
+        .partner {
+            background: #292929;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .partner button {
+            width: 100%;
+            padding: 10px;
+            background: #32CD32;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <!-- Страница оформления заказа -->
+    <div id="orderPage" class="container">
         <h2>ВАШ ЗАКАЗ <span class="edit-button" onclick="editOrder()">Править</span></h2>
 
         <div class="image-container">
@@ -127,6 +150,16 @@
         <button class="button" onclick="submitOrder()">Разместить заказ</button>
     </div>
 
+    <!-- Страница выбора исполнителя -->
+    <div id="partnersPage" class="container hidden">
+        <h2>Выбор исполнителя</h2>
+        <p>Ожидаем откликов от партнеров...</p>
+
+        <div id="partnersList"></div>
+
+        <button class="button" onclick="refreshPartners()">🔄 Обновить</button>
+    </div>
+
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
@@ -137,41 +170,63 @@
 
         if (imageUrl) {
             orderImage.src = imageUrl;
-        } else {
-            orderImage.style.display = "none"; // Скрываем контейнер, если нет фото
+        }
+
+        function editOrder() {
+            let editData = { action: "edit_image" };
+            Telegram.WebApp.sendData(JSON.stringify(editData));
+            Telegram.WebApp.close();
         }
 
         function submitOrder() {
             let orderData = {
                 action: "submit_order",
-                image_url: imageUrl,  // Передаем изображение
                 comment: document.getElementById("comment").value,
             };
 
-            console.log("📤 Отправка данных в бота:", orderData);
+            Telegram.WebApp.sendData(JSON.stringify(orderData));
 
-            try {
-                Telegram.WebApp.sendData(JSON.stringify(orderData));
-                console.log("✅ Данные успешно отправлены в бота");
-                setTimeout(() => Telegram.WebApp.close(), 500);
-            } catch (error) {
-                console.error("❌ Ошибка при отправке данных:", error);
-            }
+            // Переключаемся на страницу исполнителей
+            document.getElementById("orderPage").classList.add("hidden");
+            document.getElementById("partnersPage").classList.remove("hidden");
+
+            // Имитация загрузки откликов (ВРЕМЕННО!)
+            setTimeout(() => {
+                let partnersList = document.getElementById("partnersList");
+                partnersList.innerHTML = `
+                    <div class="partner">
+                        <h3>🎈 Партнер 1</h3>
+                        <p>💰 Цена: 1500 руб.</p>
+                        <p>📍 Адрес: Москва, Тверская 12</p>
+                        <button onclick="selectPartner('Партнер 1')">Выбрать</button>
+                    </div>
+                    <div class="partner">
+                        <h3>🎈 Партнер 2</h3>
+                        <p>💰 Цена: 1700 руб.</p>
+                        <p>📍 Адрес: Москва, Арбат 25</p>
+                        <button onclick="selectPartner('Партнер 2')">Выбрать</button>
+                    </div>
+                `;
+            }, 3000); // Симуляция задержки
         }
 
-        function editOrder() {
-            let editData = {
-                action: "edit_image"
-            };
+        function refreshPartners() {
+            // Симуляция новых данных
+            let partnersList = document.getElementById("partnersList");
+            partnersList.innerHTML += `
+                <div class="partner">
+                    <h3>🎈 Новый партнер</h3>
+                    <p>💰 Цена: 1600 руб.</p>
+                    <p>📍 Адрес: Санкт-Петербург, Невский 10</p>
+                    <button onclick="selectPartner('Новый партнер')">Выбрать</button>
+                </div>
+            `;
+        }
 
-            console.log("📤 Отправка команды на редактирование:", editData);
-
-            try {
-                Telegram.WebApp.sendData(JSON.stringify(editData));
-                setTimeout(() => Telegram.WebApp.close(), 500);
-            } catch (error) {
-                console.error("❌ Ошибка при отправке команды редактирования:", error);
-            }
+        function selectPartner(partnerName) {
+            let data = { action: "select_partner", partner: partnerName };
+            Telegram.WebApp.sendData(JSON.stringify(data));
+            Telegram.WebApp.close();
         }
     </script>
 
