@@ -2,233 +2,59 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Оформление заказа</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-
-        body {
-            background-color: #161616;
-            color: #fff;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        h2 {
-            font-size: 22px;
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .edit-button {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            color: #32CD32;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .image-container {
-            background: #222;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-        }
-
-        img {
-            max-width: 100%;
-            border-radius: 15px;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            outline: none;
-            resize: none;
-            height: 80px;
-            background: #292929;
-            color: white;
-        }
-
-        textarea::placeholder {
-            color: #999;
-        }
-
-        .button {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            background: linear-gradient(90deg, #32CD32, #228B22);
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .button:hover {
-            background: linear-gradient(90deg, #228B22, #006400);
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .partner {
-            background: #292929;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 10px;
-            text-align: left;
-        }
-
-        .partner button {
-            width: 100%;
-            padding: 10px;
-            background: #32CD32;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background-color: #161616; color: #fff; padding: 20px; }
+        .container { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 15px; }
+        h2 { font-size: 22px; margin-bottom: 15px; }
+        .edit-button { position: absolute; top: 15px; right: 15px; color: #32CD32; cursor: pointer; }
+        .image-container { background: #222; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
+        img { max-width: 100%; border-radius: 15px; }
+        .input-group { margin-bottom: 15px; }
+        label { font-weight: bold; margin-bottom: 5px; display: block; }
+        textarea { width: 100%; padding: 12px; background: #292929; color: white; border: 2px solid #ddd; border-radius: 8px; }
+        textarea::placeholder { color: #999; }
+        .button { width: 100%; padding: 14px; font-weight: bold; background: #32CD32; border: none; border-radius: 10px; color: white; cursor: pointer; }
+        .button:hover { background: #228B22; }
+        .link-button { background: none; color: #32CD32; text-decoration: underline; cursor: pointer; margin-bottom: 15px; display: inline-block; }
     </style>
 </head>
 <body>
-
-    <!-- Страница оформления заказа -->
-    <div id="orderPage" class="container">
+    <div class="container">
         <h2>ВАШ ЗАКАЗ <span class="edit-button" onclick="editOrder()">Править</span></h2>
+        <div class="image-container"><img id="orderImage" src="" alt="Композиция"></div>
 
-        <div class="image-container">
-            <img id="orderImage" src="" alt="Композиция">
-        </div>
+        <a class="link-button" href="delivery.html">📦 Информация о доставке</a>
 
         <div class="input-group">
-            <label for="comment">Ваши пожелания, уточнения и видоизменения композиции:</label>
+            <label>Ваши пожелания:</label>
             <textarea id="comment" placeholder="Например, добавить красные шары..."></textarea>
         </div>
 
         <button class="button" onclick="submitOrder()">Разместить заказ</button>
     </div>
 
-    <!-- Страница выбора исполнителя -->
-    <div id="partnersPage" class="container hidden">
-        <h2>Выбор исполнителя</h2>
-        <p>Ожидаем откликов от партнеров...</p>
-
-        <div id="partnersList"></div>
-
-        <button class="button" onclick="refreshPartners()">🔄 Обновить</button>
-    </div>
-
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-
-        let orderImage = document.getElementById("orderImage");
         let params = new URLSearchParams(window.location.search);
         let imageUrl = params.get("image_url");
-
-        if (imageUrl) {
-            orderImage.src = imageUrl;
-        }
+        if (imageUrl) document.getElementById("orderImage").src = imageUrl;
 
         function editOrder() {
-            let editData = { action: "edit_image" };
-            Telegram.WebApp.sendData(JSON.stringify(editData));
+            Telegram.WebApp.sendData(JSON.stringify({ action: "edit_image" }));
             Telegram.WebApp.close();
         }
 
         function submitOrder() {
             let orderData = {
                 action: "submit_order",
-                comment: document.getElementById("comment").value,
+                comment: document.getElementById("comment").value
             };
-
             Telegram.WebApp.sendData(JSON.stringify(orderData));
-
-            // Переключаемся на страницу исполнителей
-            document.getElementById("orderPage").classList.add("hidden");
-            document.getElementById("partnersPage").classList.remove("hidden");
-
-            // Имитация загрузки откликов (ВРЕМЕННО!)
-            setTimeout(() => {
-                let partnersList = document.getElementById("partnersList");
-                partnersList.innerHTML = `
-                    <div class="partner">
-                        <h3>🎈 Партнер 1</h3>
-                        <p>💰 Цена: 1500 руб.</p>
-                        <p>📍 Адрес: Москва, Тверская 12</p>
-                        <button onclick="selectPartner('Партнер 1')">Выбрать</button>
-                    </div>
-                    <div class="partner">
-                        <h3>🎈 Партнер 2</h3>
-                        <p>💰 Цена: 1700 руб.</p>
-                        <p>📍 Адрес: Москва, Арбат 25</p>
-                        <button onclick="selectPartner('Партнер 2')">Выбрать</button>
-                    </div>
-                `;
-            }, 3000); // Симуляция задержки
-        }
-
-        function refreshPartners() {
-            // Симуляция новых данных
-            let partnersList = document.getElementById("partnersList");
-            partnersList.innerHTML += `
-                <div class="partner">
-                    <h3>🎈 Новый партнер</h3>
-                    <p>💰 Цена: 1600 руб.</p>
-                    <p>📍 Адрес: Санкт-Петербург, Невский 10</p>
-                    <button onclick="selectPartner('Новый партнер')">Выбрать</button>
-                </div>
-            `;
-        }
-
-        function selectPartner(partnerName) {
-            let data = { action: "select_partner", partner: partnerName };
-            Telegram.WebApp.sendData(JSON.stringify(data));
-            Telegram.WebApp.close();
         }
     </script>
-
 </body>
 </html>
