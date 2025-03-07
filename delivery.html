@@ -4,38 +4,60 @@
     <title>Информация о доставке</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: #161616; color: #fff; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 15px; }
-        h2 { margin-bottom: 15px; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; }
-        input { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd; background: #292929; color: white; }
-        button { margin-top: 15px; padding: 14px; background: #32CD32; border: none; border-radius: 5px; color: white; cursor: pointer; width: 100%; }
+        body { background-color: #161616; color: white; font-family: Arial, sans-serif; padding: 20px; }
+        .container { background: #1e1e1e; padding: 20px; border-radius: 10px; }
+        input, button { width: 100%; padding: 10px; margin-top: 10px; border: none; border-radius: 5px; }
+        input { background: #292929; color: white; }
+        button { background: #32CD32; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Информация о доставке</h2>
-        <label>Город</label><input type="text" id="city" value="Москва">
-        <label>Адрес</label><input type="text" id="address">
-        <label>Имя</label><input type="text" id="name">
-        <label>Телефон</label><input type="text" id="phone">
-        <button onclick="saveDeliveryInfo()">Сохранить</button>
-    </div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        function saveDeliveryInfo() {
-            let deliveryData = {
-                city: document.getElementById('city').value,
-                address: document.getElementById('address').value,
-                name: document.getElementById('name').value,
-                phone: document.getElementById('phone').value
-            };
-            tg.sendData(JSON.stringify(deliveryData));
-            tg.close();
-        }
-        tg.expand();
-    </script>
+<div class="container">
+    <h2>Информация о доставке</h2>
+
+    <label>Город</label>
+    <input type="text" id="city" value="Москва">
+
+    <label>Адрес</label>
+    <input type="text" id="address">
+
+    <label>Имя</label>
+    <input type="text" id="recipient_name">
+
+    <label>Телефон</label>
+    <input type="text" id="recipient_phone">
+
+    <button onclick="saveDeliveryInfo()">Сохранить</button>
+</div>
+
+<script>
+    let tg = window.Telegram.WebApp;
+
+    function loadSavedData() {
+        const savedData = JSON.parse(localStorage.getItem('deliveryData')) || {};
+        document.getElementById('city').value = savedData.city || 'Москва';
+        document.getElementById('address').value = savedData.address || '';
+        document.getElementById('recipient_name').value = savedData.recipient_name || '';
+        document.getElementById('recipient_phone').value = savedData.recipient_phone || '';
+    }
+
+    function saveDeliveryInfo() {
+        const deliveryData = {
+            city: document.getElementById('city').value,
+            address: document.getElementById('address').value,
+            recipient_name: document.getElementById('recipient_name').value,
+            recipient_phone: document.getElementById('recipient_phone').value,
+        };
+
+        localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
+
+        // Возвращаемся на главную страницу Mini App
+        window.location.href = "index.html";
+    }
+
+    loadSavedData();
+</script>
+
 </body>
 </html>
