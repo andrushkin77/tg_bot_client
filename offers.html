@@ -19,9 +19,10 @@
 
     <script>
         const orderId = new URLSearchParams(window.location.search).get('order_id');
+        const backendUrl = "https://kk2p3l-121-127-46-66.ru.tuna.am";  // Подставь свой актуальный backend
 
         function loadOffers() {
-            fetch(`https://kk2p3l-121-127-46-66.ru.tuna.am/api/offers?order_id=${orderId}`)
+            fetch(`${backendUrl}/api/offers?order_id=${orderId}`)
                 .then(res => res.json())
                 .then(data => {
                     const container = document.getElementById('offersContainer');
