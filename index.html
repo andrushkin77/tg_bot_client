@@ -1,60 +1,62 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
     <title>Оформление заказа</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: #161616; color: #fff; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 15px; }
-        h2 { font-size: 22px; margin-bottom: 15px; }
-        .edit-button { position: absolute; top: 15px; right: 15px; color: #32CD32; cursor: pointer; }
-        .image-container { background: #222; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
-        img { max-width: 100%; border-radius: 15px; }
-        .input-group { margin-bottom: 15px; }
-        label { font-weight: bold; margin-bottom: 5px; display: block; }
-        textarea { width: 100%; padding: 12px; background: #292929; color: white; border: 2px solid #ddd; border-radius: 8px; }
-        textarea::placeholder { color: #999; }
-        .button { width: 100%; padding: 14px; font-weight: bold; background: #32CD32; border: none; border-radius: 10px; color: white; cursor: pointer; }
-        .button:hover { background: #228B22; }
-        .link-button { background: none; color: #32CD32; text-decoration: underline; cursor: pointer; margin-bottom: 15px; display: inline-block; }
+        body { background-color: #161616; color: white; font-family: Arial, sans-serif; padding: 20px; }
+        .container { background: #1e1e1e; padding: 20px; border-radius: 10px; }
+        textarea, button, a { width: 100%; padding: 10px; margin-top: 10px; border: none; border-radius: 5px; }
+        textarea { background: #292929; color: white; }
+        button { background: #32CD32; color: white; font-weight: bold; }
+        .link { color: #32CD32; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>ВАШ ЗАКАЗ <span class="edit-button" onclick="editOrder()">Править</span></h2>
-        <div class="image-container"><img id="orderImage" src="" alt="Композиция"></div>
 
-        <a class="link-button" href="delivery.html">📦 Информация о доставке</a>
+<div class="container">
+    <h2>Ваш заказ</h2>
 
-        <div class="input-group">
-            <label>Ваши пожелания:</label>
-            <textarea id="comment" placeholder="Например, добавить красные шары..."></textarea>
-        </div>
+    <img id="orderImage" style="width: 100%; border-radius: 10px;" alt="Фото заказа">
 
-        <button class="button" onclick="submitOrder()">Разместить заказ</button>
-    </div>
+    <div class="link" onclick="openDeliveryPage()">📦 Информация о доставке</div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        let params = new URLSearchParams(window.location.search);
-        let imageUrl = params.get("image_url");
-        if (imageUrl) document.getElementById("orderImage").src = imageUrl;
+    <label>Ваши пожелания:</label>
+    <textarea id="wishes" placeholder="Например, добавить красные шары..."></textarea>
 
-        function editOrder() {
-            Telegram.WebApp.sendData(JSON.stringify({ action: "edit_image" }));
-            Telegram.WebApp.close();
-        }
+    <button onclick="submitOrder()">Разместить заказ</button>
+</div>
 
-        function submitOrder() {
-            let orderData = {
-                action: "submit_order",
-                comment: document.getElementById("comment").value
-            };
-            Telegram.WebApp.sendData(JSON.stringify(orderData));
-        }
-    </script>
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let imageUrl = new URLSearchParams(window.location.search).get('image_url');
+    document.getElementById('orderImage').src = imageUrl;
+
+    function openDeliveryPage() {
+        window.location.href = "delivery.html";
+    }
+
+    function submitOrder() {
+        const deliveryData = JSON.parse(localStorage.getItem('deliveryData')) || {};
+
+        const orderData = {
+            action: "submit_order",
+            image_url: imageUrl,
+            wishes: document.getElementById('wishes').value,
+            city: deliveryData.city,
+            deliveryAddress: deliveryData.address,
+            recipient_name: deliveryData.recipient_name,
+            recipient_phone: deliveryData.recipient_phone
+        };
+
+        Telegram.WebApp.sendData(JSON.stringify(orderData));
+
+        const orderId = Math.floor(Math.random() * 1000);  // В реальности получишь от бота
+        window.location.href = `offers.html?order_id=${orderId}`;
+    }
+</script>
+
 </body>
 </html>
