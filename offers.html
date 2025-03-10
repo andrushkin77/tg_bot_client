@@ -1,57 +1,61 @@
+<!-- offers.html (Обновленный) -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <title>Предложения от партнеров</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #161616; color: white; font-family: Arial, sans-serif; padding: 20px; }
-        .container { background: #1e1e1e; padding: 20px; border-radius: 10px; }
-        .offer { background: #292929; padding: 10px; margin: 10px 0; border-radius: 5px; }
-        button { width: 100%; padding: 10px; background: #32CD32; color: white; border: none; cursor: pointer; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background-color: #161616; color: #fff; padding: 20px; }
+        .container { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 15px; }
+        .offer { padding: 10px; background: #292929; margin: 10px 0; border-radius: 5px; }
+        button { margin-top: 10px; padding: 10px; background: #32CD32; border: none; border-radius: 5px; cursor: pointer; width: 100%; color: white; }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h2>Предложения от партнеров</h2>
+        <div id="offersContainer">Загрузка...</div>
+    </div>
 
-<div class="container">
-    <h2>Предложения от партнеров</h2>
-    <div id="offersContainer">Загрузка...</div>
-</div>
+    <script>
+        const orderId = new URLSearchParams(window.location.search).get('order_id');
 
-<script>
-    const orderId = new URLSearchParams(window.location.search).get('order_id');
+        function loadOffers() {
+            fetch(`https://gpyh8b-185-77-216-4.ru.tuna.am/api/offers?order_id=${orderId}`)
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('offersContainer');
+                    container.innerHTML = '';
 
-    function loadOffers() {
-        fetch(`https://rw0fsi-185-77-216-4.ru.tuna.am/api/offers?order_id=${orderId}`)
-            .then(res => res.json())
-            .then(data => {
-                const container = document.getElementById('offersContainer');
-                container.innerHTML = '';
+                    if (data.offers.length === 0) {
+                        container.innerHTML = '<p>Пока предложений нет.</p>';
+                        return;
+                    }
 
-                if (data.offers.length === 0) {
-                    container.innerHTML = '<p>Пока предложений нет.</p>';
-                    return;
-                }
-
-                data.offers.forEach(offer => {
-                    const offerDiv = document.createElement('div');
-                    offerDiv.className = 'offer';
-                    offerDiv.innerHTML = `
-                        <strong>${offer.partner_name}</strong><br>
-                        Цена: ${offer.price} руб.<br>
-                        Комментарий: ${offer.comment}<br>
-                        <button onclick="selectOffer(${offer.id})">Выбрать</button>
-                    `;
-                    container.appendChild(offerDiv);
+                    data.offers.forEach(offer => {
+                        const offerDiv = document.createElement('div');
+                        offerDiv.className = 'offer';
+                        offerDiv.innerHTML = `
+                            <strong>${offer.partner_name}</strong><br>
+                            Цена: ${offer.price} руб.<br>
+                            Комментарий: ${offer.comment}<br>
+                            <button onclick="selectOffer(${offer.id})">Выбрать</button>
+                        `;
+                        container.appendChild(offerDiv);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById('offersContainer').innerText = 'Ошибка загрузки предложений.';
                 });
-            });
-    }
+        }
 
-    function selectOffer(offerId) {
-        Telegram.WebApp.sendData(JSON.stringify({ action: "select_offer", offer_id: offerId }));
-    }
+        function selectOffer(offerId) {
+            Telegram.WebApp.sendData(JSON.stringify({ action: "select_offer", offer_id: offerId }));
+            Telegram.WebApp.close();
+        }
 
-    loadOffers();
-</script>
-
+        loadOffers();
+    </script>
 </body>
 </html>
