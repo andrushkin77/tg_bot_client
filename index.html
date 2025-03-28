@@ -31,7 +31,15 @@
     let tg = window.Telegram.WebApp;
     tg.expand();
 
+    // Получение image_url из query или из localStorage
     let imageUrl = new URLSearchParams(window.location.search).get('image_url');
+
+    if (imageUrl) {
+        localStorage.setItem('image_url', imageUrl);
+    } else {
+        imageUrl = localStorage.getItem('image_url');
+    }
+
     document.getElementById('orderImage').src = imageUrl;
 
     function openDeliveryPage() {
@@ -52,9 +60,7 @@
         };
 
         Telegram.WebApp.sendData(JSON.stringify(orderData));
-
-        const orderId = Math.floor(Math.random() * 1000);  // В реальности получишь от бота
-        window.location.href = `offers.html?order_id=${orderId}`;
+        Telegram.WebApp.close();
     }
 </script>
 
