@@ -1,4 +1,4 @@
-<!-- offers.html (Обновленный) -->
+<!-- offers.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -28,7 +28,7 @@
                     const container = document.getElementById('offersContainer');
                     container.innerHTML = '';
 
-                    if (data.offers.length === 0) {
+                    if (!data.offers || data.offers.length === 0) {
                         container.innerHTML = '<p>Пока предложений нет.</p>';
                         return;
                     }
