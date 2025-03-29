@@ -1,15 +1,18 @@
-<!-- offers.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <meta charset="UTF-8">
     <title>Предложения от партнеров</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
         body { background-color: #161616; color: #fff; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 15px; }
-        .offer { padding: 10px; background: #292929; margin: 10px 0; border-radius: 5px; }
-        button { margin-top: 10px; padding: 10px; background: #32CD32; border: none; border-radius: 5px; cursor: pointer; width: 100%; color: white; }
+        .container { max-width: 500px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 15px; }
+        .offer { padding: 15px; background: #292929; margin: 15px 0; border-radius: 5px; }
+        .offer h3 { margin-bottom: 10px; }
+        .offer p { margin-bottom: 10px; }
+        .offer button { padding: 10px; background: #32CD32; border: none; border-radius: 5px; cursor: pointer; width: 100%; color: #fff; font-weight: bold; }
+        .no-offers { text-align: center; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -19,8 +22,20 @@
     </div>
 
     <script>
-        const orderId = new URLSearchParams(window.location.search).get('order_id');
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
+        // Получаем order_id из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
+
+        // Функция для перехода на страницу с деталями партнера
+        function viewDetails(partnerId, offerId) {
+            // Перенаправляем на страницу partner_details.html с нужными параметрами
+            window.location.href = `partner_details.html?partner_id=${partnerId}&offer_id=${offerId}&order_id=${orderId}`;
+        }
+
+        // Загружаем предложения с API
         function loadOffers() {
             fetch(`https://4h10mi-149-40-52-113.ru.tuna.am/api/offers?order_id=${orderId}`)
                 .then(res => res.json())
@@ -28,19 +43,21 @@
                     const container = document.getElementById('offersContainer');
                     container.innerHTML = '';
 
+                    // Если предложений нет
                     if (!data.offers || data.offers.length === 0) {
-                        container.innerHTML = '<p>Пока предложений нет.</p>';
+                        container.innerHTML = '<p class="no-offers">Пока предложений нет.</p>';
                         return;
                     }
 
                     data.offers.forEach(offer => {
                         const offerDiv = document.createElement('div');
                         offerDiv.className = 'offer';
+
+                        // Формируем карточку предложения: название компании, цена и кнопка "Смотреть детали"
                         offerDiv.innerHTML = `
-                            <strong>${offer.partner_name}</strong><br>
-                            Цена: ${offer.price} руб.<br>
-                            Комментарий: ${offer.comment}<br>
-                            <button onclick="selectOffer(${offer.id})">Выбрать</button>
+                            <h3>${offer.partner_name}</h3>
+                            <p>Стоимость: <strong>${offer.price} руб.</strong></p>
+                            <button onclick="viewDetails(${offer.partner_id}, ${offer.id})">Смотреть детали</button>
                         `;
                         container.appendChild(offerDiv);
                     });
@@ -48,11 +65,6 @@
                 .catch(() => {
                     document.getElementById('offersContainer').innerText = 'Ошибка загрузки предложений.';
                 });
-        }
-
-        function selectOffer(offerId) {
-            Telegram.WebApp.sendData(JSON.stringify({ action: "select_offer", offer_id: offerId }));
-            Telegram.WebApp.close();
         }
 
         loadOffers();
