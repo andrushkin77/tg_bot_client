@@ -1,0 +1,136 @@
+<!-- partner_details.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Детали исполнителя</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background-color: #161616; color: #fff; font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 15px; }
+        .photos img { width: 80px; margin-right: 5px; border-radius: 5px; }
+        .back-button { background: none; color: #32CD32; border: none; cursor: pointer; font-size: 16px; text-decoration: underline; margin-bottom: 10px; }
+        .select-button { margin-top: 20px; background: #32CD32; border: none; border-radius: 5px; padding: 10px; color: white; width: 100%; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button class="back-button" onclick="goBack()">← Назад</button>
+
+    <h2 id="partnerName">...</h2>
+    <p id="partnerDescription"></p>
+    <p>Адрес: <span id="partnerAddress"></span></p>
+    <p><a id="mapLink" href="#" target="_blank">Открыть карту</a></p>
+    <p><a id="vkLink" href="#" target="_blank">VK</a> | <a id="tgLink" href="#" target="_blank">Telegram</a></p>
+
+    <div class="photos" id="photosContainer"></div>
+
+    <hr>
+
+    <h3>Ваш заказ</h3>
+    <img id="orderImage" style="width:100%; border-radius:5px;" alt="Фото заказа">
+    <p id="deliveryInfo"></p>
+    <p>Цена от исполнителя: <b id="offerPrice"></b> руб.</p>
+
+    <button class="select-button" onclick="selectPartner()">Выбрать этого партнёра</button>
+</div>
+
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Получаем partner_id, offer_id, order_id из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const partnerId = urlParams.get('partner_id');
+    const offerId = urlParams.get('offer_id');
+    const orderId = urlParams.get('order_id');
+
+    // 1) Загружаем данные партнёра
+    function loadPartnerDetails() {
+        fetch(`https://<твой-домен>/api/partners/${partnerId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "error") {
+                    alert(data.message);
+                    return;
+                }
+                const partner = data.partner;
+                document.getElementById('partnerName').innerText = partner.name;
+                document.getElementById('partnerDescription').innerText = partner.description;
+                document.getElementById('partnerAddress').innerText = partner.address;
+
+                // Ссылки
+                document.getElementById('mapLink').href = partner.map_link || "#";
+                document.getElementById('vkLink').href = partner.vk_link || "#";
+                document.getElementById('tgLink').href = partner.tg_link || "#";
+
+                // Фото
+                const photosContainer = document.getElementById('photosContainer');
+                if (partner.photos && partner.photos.length > 0) {
+                    partner.photos.forEach(url => {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        photosContainer.appendChild(img);
+                    });
+                }
+            })
+            .catch(() => alert("Ошибка загрузки данных партнёра."));
+    }
+
+    // 2) Загружаем данные о заказе и отклике
+    function loadOrderDetails() {
+        // Запросим детали заказа (в т.ч. image_url, доставка и т.д.)
+        fetch(`https://<твой-домен>/api/order_details?order_id=${orderId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "error") {
+                    alert(data.message);
+                    return;
+                }
+                const order = data.order;
+                document.getElementById('orderImage').src = order.image_url;
+                document.getElementById('deliveryInfo').innerText = 
+                    `Тип доставки: ${order.delivery_type}, Адрес: ${order.delivery_address}, Время: ${order.delivery_time}`;
+            })
+            .catch(() => alert("Ошибка загрузки данных заказа."));
+
+        // Запросим конкретный отклик, чтобы узнать price/комментарий
+        fetch(`https://<твой-домен>/api/offers?order_id=${orderId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.offers) {
+                    alert("Нет предложений.");
+                    return;
+                }
+                // Найдём отклик по offerId
+                const offer = data.offers.find(o => o.id == offerId);
+                if (!offer) {
+                    alert("Отклик не найден.");
+                    return;
+                }
+                document.getElementById('offerPrice').innerText = offer.price;
+            })
+            .catch(() => alert("Ошибка загрузки отклика."));
+    }
+
+    // 3) Кнопка «Выбрать партнёра»
+    function selectPartner() {
+        // Можно отправить действие в бота (примерно как selectOffer):
+        const data = {
+            action: "select_offer",
+            offer_id: offerId
+        };
+        Telegram.WebApp.sendData(JSON.stringify(data));
+        Telegram.WebApp.close();
+    }
+
+    // Кнопка «Назад»
+    function goBack() {
+        // Возвращаемся на offers.html
+        window.location.href = `offers.html?order_id=${orderId}`;
+    }
+
+    loadPartnerDetails();
+    loadOrderDetails();
+</script>
+</body>
+</html>
