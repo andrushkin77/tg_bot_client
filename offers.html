@@ -22,7 +22,7 @@
         const orderId = new URLSearchParams(window.location.search).get('order_id');
 
         function loadOffers() {
-            fetch(`https://fiwizd-149-40-52-113.ru.tuna.am/api/offers?order_id=${orderId}`)
+            fetch(`https://4h10mi-149-40-52-113.ru.tuna.am/api/offers?order_id=${orderId}`)
                 .then(res => res.json())
                 .then(data => {
                     const container = document.getElementById('offersContainer');
