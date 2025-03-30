@@ -79,7 +79,7 @@
     // 2) Загружаем данные о заказе и отклике
     function loadOrderDetails() {
         // Запросим детали заказа (в т.ч. image_url, доставка и т.д.)
-        fetch(`https://zh3qf7-149-40-52-113.ru.tuna.am/api/order_details?order_id=${orderId}`)
+        fetch(`https://3bjtq6-95-164-118-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "error") {
@@ -94,7 +94,7 @@
             .catch(() => alert("Ошибка загрузки данных заказа."));
 
         // Запросим конкретный отклик, чтобы узнать price/комментарий
-        fetch(`https://zh3qf7-149-40-52-113.ru.tuna.am/api/offers?order_id=${orderId}`)
+        fetch(`https://3bjtq6-95-164-118-165.ru.tuna.am/api/offers?order_id=${orderId}`)
             .then(res => res.json())
             .then(data => {
                 if (!data.offers) {
