@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Ваш заказ</title>
+  <style>
+    /* Общий стиль */
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h2, h3 {
+      margin-bottom: 10px;
+    }
+    /* Блок "Ваш заказ" */
+    .order-box {
+      background: #1E1E1E;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    .order-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .order-header img {
+      width: 40px;
+      height: 40px;
+      margin-right: 10px;
+    }
+    .order-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .order-body strong {
+      font-size: 16px;
+    }
+    .order-body textarea {
+      background: #2A2A2A;
+      border: none;
+      border-radius: 5px;
+      padding: 10px;
+      color: #fff;
+      resize: vertical;
+    }
+    /* Блок "Ваш исполнитель" */
+    .executor-box {
+      background: #1E1E1E;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .executor-box .executor-name {
+      font-size: 16px;
+    }
+    .executor-box button {
+      background: #32CD32;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 12px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    /* Кнопка "Оплатить" */
+    .pay-button {
+      width: 100%;
+      background: #32CD32;
+      border: none;
+      border-radius: 5px;
+      padding: 15px;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    /* Модальное окно оформления заказа */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #1E1E1E;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+    }
+    .modal-content h3 {
+      margin-bottom: 10px;
+    }
+    .modal-content p {
+      margin-bottom: 10px;
+    }
+    .modal-content .field {
+      background: #2A2A2A;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .modal-content .field:hover {
+      background: #333;
+    }
+    .modal-content button {
+      margin-top: 10px;
+      padding: 10px;
+      background: #32CD32;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      color: #fff;
+      font-weight: bold;
+    }
+    .modal-content .cancel-btn {
+      background: #444;
+      margin-top: 5px;
+    }
+    /* Субмодальное окно для редактирования данных */
+    .submodal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1100;
+    }
+    .submodal-content {
+      background: #1E1E1E;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+    }
+    .submodal-content h3 {
+      margin-bottom: 10px;
+    }
+    .submodal-content input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #2A2A2A;
+      color: #fff;
+    }
+    .submodal-content button {
+      padding: 10px;
+      background: #32CD32;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- "Ваш заказ" -->
+  <div class="order-box">
+    <div class="order-header">
+      <!-- Иконка воздушных шаров с персонализированной надписью -->
+      <img id="balloonIcon" src="https://cdn-icons-png.flaticon.com/512/1761/1761370.png" alt="Баллоны">
+      <h2>Ваш заказ</h2>
+    </div>
+    <div class="order-body">
+      <!-- Название композиции (ответ клиента на вопрос) -->
+      <strong id="compositionName"></strong>
+      <!-- Редактируемый комментарий -->
+      <textarea id="clientComment" rows="3" placeholder="Добавьте комментарий..."></textarea>
+    </div>
+  </div>
+  
+  <!-- "Ваш исполнитель" -->
+  <div class="executor-box">
+    <div class="executor-name" id="executorName"></div>
+    <button id="showPartnerDetailsBtn">Смотреть детали</button>
+  </div>
+  
+  <!-- Кнопка "Оплатить" -->
+  <button class="pay-button" id="payBtn">Оплатить</button>
+</div>
+
+<!-- Модальное окно оформления заказа -->
+<div class="modal-overlay" id="checkoutModal">
+  <div class="modal-content">
+    <h3>Подтверждение заказа</h3>
+    <p id="orderNumber">Заказ №...</p>
+    <p id="orderDescription"></p>
+    <p id="deliveryInfo">Доставка: ...</p>
+    <p id="orderTotal">Итого: ... руб.</p>
+    
+    <!-- Поля для редактирования (Информация о доставке, Имя, Телефон) -->
+    <div class="field" onclick="openSubModal('delivery')">Информация о доставке</div>
+    <div class="field" onclick="openSubModal('name')">Имя</div>
+    <div class="field" onclick="openSubModal('phone')">Телефон</div>
+    
+    <button onclick="confirmPayment()" id="confirmPaymentBtn">Оплатить</button>
+    <button class="cancel-btn" onclick="closeCheckout()">Отмена</button>
+  </div>
+</div>
+
+<!-- Субмодальное окно для ввода дополнительных данных -->
+<div class="submodal-overlay" id="subModal">
+  <div class="submodal-content">
+    <h3 id="subModalTitle">Редактирование</h3>
+    <input type="text" id="subModalInput" placeholder="">
+    <button onclick="closeSubModal()">Готово</button>
+  </div>
+</div>
+
+<script>
+  let tg = window.Telegram.WebApp;
+  tg.expand();
+
+  // Получаем данные, сохранённые на предыдущих страницах (из localStorage)
+  const compositionName = localStorage.getItem('compositionName') || "Романтический сюрприз";
+  const clientComment = localStorage.getItem('clientComment') || "";
+  const deliveryData = JSON.parse(localStorage.getItem('deliveryData') || '{}');
+  const selectedPartner = JSON.parse(localStorage.getItem('selectedPartner') || '{}');
+  
+  // Если партнер выбран, подставляем его данные
+  if (selectedPartner && selectedPartner.name) {
+    document.getElementById('executorName').innerText = selectedPartner.name;
+  } else {
+    document.getElementById('executorName').innerText = "Исполнитель не выбран";
+  }
+  
+  // Заполняем поля заказа
+  document.getElementById('compositionName').innerText = `Композиция: "${compositionName}"`;
+  document.getElementById('clientComment').value = clientComment;
+  
+  // Персонализация иконки воздушных шаров:
+  // Например, можно добавить динамическую надпись поверх иконки. Здесь вставим alt-текст в title.
+  document.getElementById('balloonIcon').title = `С праздником, ${selectedPartner.name || "друг"}!`;
+
+  // Примерные данные заказа (если order_details уже получены с сервера, их можно заменить)
+  const orderData = {
+    orderId: localStorage.getItem('orderId') || 123456,
+    orderNumber: localStorage.getItem('orderNumber') || "Заказ №123456",
+    deliveryInfo: deliveryData.address ? `Доставка: ${deliveryData.address}, ${deliveryData.city}` : "Доставка: не указана",
+    orderPrice: localStorage.getItem('orderPrice') || 1200,
+    deliveryPrice: localStorage.getItem('deliveryPrice') || 300,
+    total: localStorage.getItem('total') || 1500
+  };
+
+  // Функция открытия модального окна оформления заказа
+  function openCheckout() {
+    document.getElementById('checkoutModal').style.display = 'flex';
+    document.getElementById('orderNumber').innerText = orderData.orderNumber;
+    document.getElementById('orderDescription').innerText = `Композиция: "${compositionName}"`;
+    document.getElementById('deliveryInfo').innerText = orderData.deliveryInfo;
+    document.getElementById('orderTotal').innerText = `Итого: ${orderData.total} руб.`;
+    document.getElementById('confirmPaymentBtn').innerText = `Оплатить ${orderData.total} руб.`;
+  }
+  
+  // Закрытие модального окна
+  function closeCheckout() {
+    document.getElementById('checkoutModal').style.display = 'none';
+  }
+  
+  document.getElementById('payBtn').addEventListener('click', openCheckout);
+  
+  // Функция подтверждения оплаты (сюда можно добавить отправку данных на сервер)
+  function confirmPayment() {
+    alert("Оплата прошла успешно!");
+    closeCheckout();
+    // При необходимости можно очистить данные или перенаправить пользователя
+  }
+  
+  // Субмодальное окно для редактирования дополнительных данных
+  function openSubModal(mode) {
+    document.getElementById('subModal').style.display = 'flex';
+    const subTitle = document.getElementById('subModalTitle');
+    const subInput = document.getElementById('subModalInput');
+    if (mode === 'delivery') {
+      subTitle.innerText = "Информация о доставке";
+      subInput.placeholder = "Введите адрес доставки";
+    } else if (mode === 'name') {
+      subTitle.innerText = "Имя";
+      subInput.placeholder = "Введите ваше имя";
+    } else if (mode === 'phone') {
+      subTitle.innerText = "Телефон";
+      subInput.placeholder = "Введите ваш телефон";
+    }
+    // Сохраняем текущий режим в атрибуте data-mode
+    subInput.setAttribute('data-mode', mode);
+  }
+  
+  function closeSubModal() {
+    const subInput = document.getElementById('subModalInput');
+    const mode = subInput.getAttribute('data-mode');
+    const value = subInput.value.trim();
+    if (value) {
+      if (mode === 'delivery') {
+        orderData.deliveryInfo = value;
+        document.getElementById('deliveryInfo').innerText = value;
+      } else if (mode === 'name') {
+        orderData.clientName = value;
+      } else if (mode === 'phone') {
+        orderData.clientPhone = value;
+      }
+      // При желании сохранить обновлённые данные в localStorage
+      localStorage.setItem('orderData', JSON.stringify(orderData));
+    }
+    document.getElementById('subModal').style.display = 'none';
+    subInput.value = "";
+  }
+  
+  // Кнопка "Смотреть детали" исполнителя – можно реализовать вызов модального окна с подробностями о партнёре
+  document.getElementById('showPartnerDetailsBtn').addEventListener('click', () => {
+    // Например, можно перенаправить на страницу partner_details.html
+    window.location.href = `partner_details.html?partner_id=${selectedPartner.id || 0}`;
+  });
+</script>
+</body>
+</html>
