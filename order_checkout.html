@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Ваш заказ</title>
+  <!-- Подключаем Telegram WebApp JS (важно для работы внутри Телеграма) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    /* Общий стиль */
     body {
-      background-color: #121212;
+      background-color: #161616;
       color: #fff;
       font-family: Arial, sans-serif;
       margin: 0;
@@ -16,10 +17,10 @@
       max-width: 600px;
       margin: 0 auto;
     }
-    h2, h3 {
-      margin-bottom: 10px;
+    h2 {
+      margin-bottom: 15px;
+      font-size: 20px;
     }
-    /* Блок "Ваш заказ" */
     .order-box {
       background: #1E1E1E;
       border-radius: 10px;
@@ -52,7 +53,6 @@
       color: #fff;
       resize: vertical;
     }
-    /* Блок "Ваш исполнитель" */
     .executor-box {
       background: #1E1E1E;
       border-radius: 10px;
@@ -64,6 +64,7 @@
     }
     .executor-box .executor-name {
       font-size: 16px;
+      font-weight: bold;
     }
     .executor-box button {
       background: #32CD32;
@@ -74,7 +75,6 @@
       cursor: pointer;
       font-weight: bold;
     }
-    /* Кнопка "Оплатить" */
     .pay-button {
       width: 100%;
       background: #32CD32;
@@ -86,13 +86,11 @@
       cursor: pointer;
       margin-bottom: 20px;
     }
-    /* Модальное окно оформления заказа */
+    /* Модальное окно */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.7);
       display: none;
       justify-content: center;
@@ -137,13 +135,11 @@
       background: #444;
       margin-top: 5px;
     }
-    /* Субмодальное окно для редактирования данных */
+    /* Субмодальное окно */
     .submodal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.7);
       display: none;
       justify-content: center;
@@ -186,21 +182,20 @@
   <!-- "Ваш заказ" -->
   <div class="order-box">
     <div class="order-header">
-      <!-- Иконка воздушных шаров с персонализированной надписью -->
       <img id="balloonIcon" src="https://cdn-icons-png.flaticon.com/512/1761/1761370.png" alt="Баллоны">
       <h2>Ваш заказ</h2>
     </div>
     <div class="order-body">
       <!-- Название композиции -->
       <strong id="compositionName"></strong>
-      <!-- Редактируемый комментарий -->
+      <!-- Комментарий (редактируемый, но пока сохраняем только в localStorage) -->
       <textarea id="clientComment" rows="3" placeholder="Добавьте комментарий..."></textarea>
     </div>
   </div>
   
   <!-- "Ваш исполнитель" -->
   <div class="executor-box">
-    <div class="executor-name" id="executorName"></div>
+    <div class="executor-name" id="executorName">Исполнитель не выбран</div>
     <button id="showPartnerDetailsBtn">Смотреть детали</button>
   </div>
   
@@ -208,7 +203,7 @@
   <button class="pay-button" id="payBtn">Оплатить</button>
 </div>
 
-<!-- Модальное окно оформления заказа -->
+<!-- Модальное окно -->
 <div class="modal-overlay" id="checkoutModal">
   <div class="modal-content">
     <h3>Подтверждение заказа</h3>
@@ -216,18 +211,17 @@
     <p id="orderDescription"></p>
     <p id="deliveryInfo">Доставка: ...</p>
     <p id="orderTotal">Итого: ... руб.</p>
-    
-    <!-- Поля для редактирования -->
+
     <div class="field" onclick="openSubModal('delivery')">Информация о доставке</div>
     <div class="field" onclick="openSubModal('name')">Имя</div>
     <div class="field" onclick="openSubModal('phone')">Телефон</div>
-    
+
     <button onclick="confirmPayment()" id="confirmPaymentBtn">Оплатить</button>
     <button class="cancel-btn" onclick="closeCheckout()">Отмена</button>
   </div>
 </div>
 
-<!-- Субмодальное окно для ввода дополнительных данных -->
+<!-- Субмодальное окно -->
 <div class="submodal-overlay" id="subModal">
   <div class="submodal-content">
     <h3 id="subModalTitle">Редактирование</h3>
@@ -237,95 +231,88 @@
 </div>
 
 <script>
-  // Если Telegram.WebApp недоступен (тестирование в браузере вне Telegram) – защитная проверка
+  /* --- Telegram WebApp --- */
   let tg;
   if (window.Telegram && Telegram.WebApp) {
     tg = Telegram.WebApp;
     tg.expand();
   } else {
-    console.log("Telegram WebApp не доступен, тестирование вне Telegram.");
+    console.log("Запуск вне Telegram WebApp");
   }
 
-  // Получаем данные из localStorage, сохранённые на предыдущих этапах
+  /* --- LocalStorage и данные --- */
   const compositionNameLS = localStorage.getItem('compositionName') || "Романтический сюрприз";
   const clientCommentLS = localStorage.getItem('clientComment') || "";
   const deliveryData = JSON.parse(localStorage.getItem('deliveryData') || '{}');
   const selectedPartner = JSON.parse(localStorage.getItem('selectedPartner') || '{}');
-  
-  // Подставляем данные выбранного партнёра
-  if (selectedPartner && selectedPartner.name) {
-    document.getElementById('executorName').innerText = selectedPartner.name;
-  } else {
-    document.getElementById('executorName').innerText = "Исполнитель не выбран";
-  }
-  
-  // Заполняем поля заказа
+
   document.getElementById('compositionName').innerText = `Композиция: "${compositionNameLS}"`;
   document.getElementById('clientComment').value = clientCommentLS;
-  
-  // Персонализация иконки воздушных шаров (добавляем надпись в title)
+
+  if (selectedPartner && selectedPartner.name) {
+    document.getElementById('executorName').innerText = selectedPartner.name;
+  }
+
+  // Пример персонализации иконки
   document.getElementById('balloonIcon').title = `С праздником, ${selectedPartner.name || "друг"}!`;
-  
-  // Функция для получения деталей заказа с сервера через API
+
+  /* --- Загрузка деталей заказа из БД --- */
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderId = urlParams.get('order_id');
+
   function loadOrderDetails() {
-    // Получаем order_id из URL-параметров
-    const urlParams = new URLSearchParams(window.location.search);
-    const orderId = urlParams.get('order_id');
     if (!orderId) {
-      console.error("order_id не найден в URL");
+      console.error("order_id не найден");
       return;
     }
-    
     fetch(`https://4frvp3-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
           const order = data.order;
-          // Обновляем поля в модальном окне оформления заказа
+          // Заполняем поля в модальном окне
           document.getElementById('orderNumber').innerText = order.orderNumber || `Заказ №${order.id}`;
           document.getElementById('orderDescription').innerText = `Композиция: "${order.description || compositionNameLS}"`;
-          document.getElementById('deliveryInfo').innerText = order.delivery_type
+
+          // Если в БД уже есть данные о доставке
+          const delInfo = order.delivery_type
             ? `Доставка: ${order.delivery_type}, ${order.delivery_address}, ${order.delivery_time}`
-            : (deliveryData.address ? `Доставка: ${deliveryData.address}, ${deliveryData.city}` : "Доставка: не указана");
-          const total = order.total || (order.orderPrice + order.deliveryPrice);
+            : "Доставка: не указана";
+          document.getElementById('deliveryInfo').innerText = delInfo;
+
+          // Если в БД есть поле total, используем его. Иначе считаем (price + deliveryPrice).
+          // Предположим, что в orders или responses хранится цена.
+          const total = order.total || 1000; // <-- нужно адаптировать к вашей логике
           document.getElementById('orderTotal').innerText = `Итого: ${total} руб.`;
           document.getElementById('confirmPaymentBtn').innerText = `Оплатить ${total} руб.`;
         } else {
-          console.error("Ошибка получения деталей заказа:", data.message);
+          console.error("Ошибка при получении заказа:", data.message);
         }
       })
       .catch(err => {
-        console.error("Ошибка fetch order_details:", err);
+        console.error("Ошибка fetch:", err);
       });
   }
-  
-  // Загружаем детали заказа при загрузке страницы
+
   loadOrderDetails();
-  
-  // Функция открытия модального окна оформления заказа
+
+  /* --- Открыть модальное окно --- */
   function openCheckout() {
     document.getElementById('checkoutModal').style.display = 'flex';
   }
-  
-  // Закрытие модального окна
   function closeCheckout() {
     document.getElementById('checkoutModal').style.display = 'none';
   }
-  
+
   document.getElementById('payBtn').addEventListener('click', openCheckout);
-  
-  // Функция подтверждения оплаты (здесь можно добавить отправку данных на сервер)
-  function confirmPayment() {
-    alert("Оплата прошла успешно!");
-    closeCheckout();
-    // Дополнительно: можно очистить localStorage или перенаправить пользователя
-  }
-  
-  // Субмодальное окно для редактирования дополнительных данных
+
+  /* --- Редактирование полей (delivery, name, phone) --- */
   function openSubModal(mode) {
     document.getElementById('subModal').style.display = 'flex';
     const subTitle = document.getElementById('subModalTitle');
     const subInput = document.getElementById('subModalInput');
+    subInput.value = ""; // очищаем на всякий случай
+
     if (mode === 'delivery') {
       subTitle.innerText = "Информация о доставке";
       subInput.placeholder = "Введите адрес доставки";
@@ -336,35 +323,88 @@
       subTitle.innerText = "Телефон";
       subInput.placeholder = "Введите ваш телефон";
     }
-    // Сохраняем режим в data-mode
+
     subInput.setAttribute('data-mode', mode);
   }
-  
+
   function closeSubModal() {
     const subInput = document.getElementById('subModalInput');
     const mode = subInput.getAttribute('data-mode');
     const value = subInput.value.trim();
-    if (value) {
-      if (mode === 'delivery') {
-        // Обновляем информацию о доставке в модальном окне
-        document.getElementById('deliveryInfo').innerText = value;
-      } else if (mode === 'name') {
-        console.log("Имя:", value);
-      } else if (mode === 'phone') {
-        console.log("Телефон:", value);
-      }
-      // При желании можно сохранить обновлённые данные в localStorage
+    if (!value) {
+      // Ничего не ввели
+      document.getElementById('subModal').style.display = 'none';
+      return;
     }
+
+    // Обновляем UI и отправляем на сервер
+    if (mode === 'delivery') {
+      document.getElementById('deliveryInfo').innerText = value;
+      updateOrderField({ delivery_address: value }); // пример
+    } else if (mode === 'name') {
+      console.log("Имя:", value);
+      updateOrderField({ recipient_name: value });
+    } else if (mode === 'phone') {
+      console.log("Телефон:", value);
+      updateOrderField({ recipient_phone: value });
+    }
+
     document.getElementById('subModal').style.display = 'none';
     subInput.value = "";
   }
-  
-  // Кнопка "Смотреть детали" исполнителя – переадресация на partner_details.html
+
+  /* --- Функция для обновления полей в БД --- */
+  function updateOrderField(fieldsObj) {
+    if (!orderId) return;
+    // Например, вызываем /api/update_order
+    // Передаём order_id и нужные поля
+    const body = { order_id: orderId, ...fieldsObj };
+
+    fetch("https://4frvp3-169-150-209-165.ru.tuna.am/api/update_order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        console.log("Поля заказа обновлены:", fieldsObj);
+      } else {
+        console.error("Ошибка update_order:", data.message);
+      }
+    })
+    .catch(err => console.error("Ошибка fetch update_order:", err));
+  }
+
+  /* --- Подтверждение оплаты --- */
+  function confirmPayment() {
+    // Пример: отправляем запрос на /api/pay_order, чтобы выставить статус = 'paid'
+    fetch("https://4frvp3-169-150-209-165.ru.tuna.am/api/pay_order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_id: orderId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert("Оплата прошла успешно!");
+        // Закрываем модальное окно
+        closeCheckout();
+        // Можно Telegram.WebApp.close() или перенаправить
+        // tg.close();
+      } else {
+        alert("Ошибка при оплате: " + data.message);
+      }
+    })
+    .catch(err => {
+      alert("Сетевая ошибка при оплате");
+      console.error(err);
+    });
+  }
+
+  /* --- Переход на детали исполнителя --- */
   document.getElementById('showPartnerDetailsBtn').addEventListener('click', () => {
     if (selectedPartner && selectedPartner.id) {
-      // Переходим на partner_details.html с параметром order_id
-      const urlParams = new URLSearchParams(window.location.search);
-      const orderId = urlParams.get('order_id');
       window.location.href = `partner_details.html?partner_id=${selectedPartner.id}&order_id=${orderId}`;
     } else {
       alert("Данные исполнителя отсутствуют.");
