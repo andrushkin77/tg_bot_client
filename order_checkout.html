@@ -237,10 +237,16 @@
 </div>
 
 <script>
-  let tg = window.Telegram.WebApp;
-  tg.expand();
+  // Если Telegram.WebApp недоступен (тестирование в браузере вне Telegram) – защитная проверка
+  let tg;
+  if (window.Telegram && Telegram.WebApp) {
+    tg = Telegram.WebApp;
+    tg.expand();
+  } else {
+    console.log("Telegram WebApp не доступен, тестирование вне Telegram.");
+  }
 
-  // Получаем данные из localStorage, сохранённые на предыдущих страницах
+  // Получаем данные из localStorage, сохранённые на предыдущих этапах
   const compositionNameLS = localStorage.getItem('compositionName') || "Романтический сюрприз";
   const clientCommentLS = localStorage.getItem('clientComment') || "";
   const deliveryData = JSON.parse(localStorage.getItem('deliveryData') || '{}');
@@ -257,27 +263,33 @@
   document.getElementById('compositionName').innerText = `Композиция: "${compositionNameLS}"`;
   document.getElementById('clientComment').value = clientCommentLS;
   
-  // Персонализация иконки воздушных шаров (например, добавляем надпись в title)
+  // Персонализация иконки воздушных шаров (добавляем надпись в title)
   document.getElementById('balloonIcon').title = `С праздником, ${selectedPartner.name || "друг"}!`;
   
-  // Функция для получения деталей заказа с сервера
+  // Функция для получения деталей заказа с сервера через API
   function loadOrderDetails() {
     // Получаем order_id из URL-параметров
     const urlParams = new URLSearchParams(window.location.search);
     const orderId = urlParams.get('order_id');
-    if (!orderId) return;
+    if (!orderId) {
+      console.error("order_id не найден в URL");
+      return;
+    }
     
     fetch(`https://4frvp3-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
           const order = data.order;
-          // Обновляем поля в модальном окне
+          // Обновляем поля в модальном окне оформления заказа
           document.getElementById('orderNumber').innerText = order.orderNumber || `Заказ №${order.id}`;
           document.getElementById('orderDescription').innerText = `Композиция: "${order.description || compositionNameLS}"`;
-          document.getElementById('deliveryInfo').innerText = order.delivery_type ? `Доставка: ${order.delivery_type}, ${order.delivery_address}, ${order.delivery_time}` : (deliveryData.address ? `Доставка: ${deliveryData.address}, ${deliveryData.city}` : "Доставка: не указана");
-          document.getElementById('orderTotal').innerText = `Итого: ${order.total || (order.orderPrice + order.deliveryPrice)} руб.`;
-          document.getElementById('confirmPaymentBtn').innerText = `Оплатить ${order.total || (order.orderPrice + order.deliveryPrice)} руб.`;
+          document.getElementById('deliveryInfo').innerText = order.delivery_type
+            ? `Доставка: ${order.delivery_type}, ${order.delivery_address}, ${order.delivery_time}`
+            : (deliveryData.address ? `Доставка: ${deliveryData.address}, ${deliveryData.city}` : "Доставка: не указана");
+          const total = order.total || (order.orderPrice + order.deliveryPrice);
+          document.getElementById('orderTotal').innerText = `Итого: ${total} руб.`;
+          document.getElementById('confirmPaymentBtn').innerText = `Оплатить ${total} руб.`;
         } else {
           console.error("Ошибка получения деталей заказа:", data.message);
         }
@@ -334,16 +346,14 @@
     const value = subInput.value.trim();
     if (value) {
       if (mode === 'delivery') {
-        // Обновляем информацию о доставке
-        // Можно сохранить и обновить orderData, если нужно
+        // Обновляем информацию о доставке в модальном окне
         document.getElementById('deliveryInfo').innerText = value;
       } else if (mode === 'name') {
-        // Сохраняем имя клиента
-        // Здесь можно сохранить в orderData или localStorage
         console.log("Имя:", value);
       } else if (mode === 'phone') {
         console.log("Телефон:", value);
       }
+      // При желании можно сохранить обновлённые данные в localStorage
     }
     document.getElementById('subModal').style.display = 'none';
     subInput.value = "";
@@ -351,9 +361,11 @@
   
   // Кнопка "Смотреть детали" исполнителя – переадресация на partner_details.html
   document.getElementById('showPartnerDetailsBtn').addEventListener('click', () => {
-    // Если у selectedPartner есть id, переходим на partner_details.html с нужными параметрами
     if (selectedPartner && selectedPartner.id) {
-      window.location.href = `partner_details.html?partner_id=${selectedPartner.id}&order_id=${new URLSearchParams(window.location.search).get('order_id')}`;
+      // Переходим на partner_details.html с параметром order_id
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get('order_id');
+      window.location.href = `partner_details.html?partner_id=${selectedPartner.id}&order_id=${orderId}`;
     } else {
       alert("Данные исполнителя отсутствуют.");
     }
