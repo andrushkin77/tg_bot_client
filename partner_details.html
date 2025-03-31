@@ -46,7 +46,7 @@
 
     // 1) Загружаем данные партнёра
     function loadPartnerDetails() {
-        fetch(`https://4frvp3-169-150-209-165.ru.tuna.am/api/partners/${partnerId}`)
+        fetch(`https://j7op7i-169-150-209-165.ru.tuna.am/api/partners/${partnerId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "error") {
@@ -78,7 +78,7 @@
 
     // 2) Загружаем данные о заказе и отклике
     function loadOrderDetails() {
-        fetch(`https://4frvp3-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+        fetch(`https://j7op7i-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "error") {
@@ -92,7 +92,7 @@
             })
             .catch(() => alert("Ошибка загрузки данных заказа."));
 
-        fetch(`https://4frvp3-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
+        fetch(`https://j7op7i-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
             .then(res => res.json())
             .then(data => {
                 if (!data.offers) {
