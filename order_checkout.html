@@ -9,7 +9,7 @@
       background-color: #161616;
       color: #fff;
       font-family: Arial, sans-serif;
-      margin: 0;
+      margin: 0; 
       padding: 20px;
     }
     .container {
@@ -142,7 +142,7 @@
     </div>
   </div>
 
-  <!-- Поля (как Durger King) -->
+  <!-- Блок полей (как Durger King) -->
   <div class="fields-box">
     <div class="field-item" onclick="openPaymentPage()">Способ оплаты</div>
     <div class="field-item" onclick="openDeliveryPage()">Информация о доставке</div>
@@ -169,13 +169,13 @@
   const orderId = urlParams.get('order_id');
   const partnerId = urlParams.get('partner_id');
 
-  // 1) Загружаем детали заказа из /api/order_details
+  // 1) Загружаем детали заказа
   function loadOrderDetails() {
     if (!orderId) {
       console.error("order_id не указан!");
       return;
     }
-    fetch(`https://4frvp3-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://j7op7i-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status !== "success") {
@@ -183,27 +183,22 @@
           return;
         }
         const order = data.order;
-
         // Заполняем элементы
         document.getElementById('orderNumber').innerText = `Order #${order.id}`;
-        document.getElementById('compositionName').innerText = `Композиция: "${order.description || '...' }"`;
-
-        // Если у вас есть поле price в orders, используйте его. Иначе 0
-        // Или вы берёте price из "responses"? (См. шаг 2)
+        document.getElementById('compositionName').innerText = `Композиция: "${order.description || '...'}"`;
       })
       .catch(err => {
         console.error("Ошибка при fetch order_details:", err);
       });
   }
 
-  // 2) Загружаем выбранного партнёра из /api/offers?order_id=...
-  //    Находим отклик, где partner_id == partnerId
+  // 2) Загружаем отклик партнёра (price, partner_name) из /api/offers
   function loadPartnerOffer() {
     if (!orderId || !partnerId) {
       console.log("Не хватает orderId или partnerId");
       return;
     }
-    fetch(`https://4frvp3-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
+    fetch(`https://j7op7i-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.offers) {
@@ -229,19 +224,17 @@
       });
   }
 
-  // При загрузке страницы
   loadOrderDetails();
   loadPartnerOffer();
 
-  // Кнопка "Оплатить"
-  const payBtn = document.getElementById('payBtn');
-  payBtn.addEventListener('click', () => {
-    const total = document.getElementById('totalPrice').innerText;
-    alert(`Оплата заказа #${orderId} на сумму ${total} руб.`);
-    // Здесь можно сделать fetch на /api/pay или показать модальное окно
+  // "Оплатить"
+  document.getElementById('payBtn').addEventListener('click', () => {
+    const totalPrice = document.getElementById('totalPrice').innerText;
+    alert(`Оплата заказа #${orderId} на сумму ${totalPrice} руб.`);
+    // Здесь можно сделать запрос на /api/pay_order
   });
 
-  // Кнопка "Смотреть детали" партнёра
+  // Кнопка "Смотреть детали" исполнителя
   document.getElementById('showPartnerDetailsBtn').addEventListener('click', () => {
     if (!partnerId) {
       alert("Партнёр не выбран");
@@ -250,14 +243,14 @@
     window.location.href = `partner_details.html?partner_id=${partnerId}&order_id=${orderId}`;
   });
 
-  // "Способ оплаты" – заглушка
+  // Поле "Способ оплаты" — заглушка
   function openPaymentPage() {
     alert("Выбор способа оплаты (пока не реализован)");
   }
-  // Остальные поля (доставка, имя, телефон) – пример
+
+  // "Информация о доставке", "Имя", "Номер телефона" – ведут на delivery.html
   function openDeliveryPage() {
-    // Переходим на delivery.html (или любую страницу)
-    window.location.href = "delivery.html";
+    window.location.href = `delivery.html?order_id=${orderId}&partner_id=${partnerId}`;
   }
 </script>
 </body>
