@@ -103,7 +103,7 @@
   // или отдельный /api/delivery_details?order_id=...
   function loadDeliveryData() {
     if (!orderId) return;
-    fetch(`https://ВАШ_ДОМЕН/api/order_details?order_id=${orderId}`)
+    fetch(`https://rhe49u-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -133,7 +133,7 @@
       recipient_phone: document.getElementById('recipient_phone').value
     };
 
-    fetch(`https://ВАШ_ДОМЕН/api/update_order`, {
+    fetch(`https://rhe49u-169-150-209-165.ru.tuna.am/api/update_order`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
