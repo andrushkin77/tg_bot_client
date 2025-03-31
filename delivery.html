@@ -1,23 +1,59 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>Информация о доставке</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { background-color: #161616; color: white; font-family: Arial, sans-serif; padding: 20px; }
-        .container { background: #1e1e1e; padding: 20px; border-radius: 10px; }
-        input, button { width: 100%; padding: 10px; margin-top: 10px; border: none; border-radius: 5px; }
-        input { background: #292929; color: white; }
-        button { background: #32CD32; color: white; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Информация о доставке</title>
+  <style>
+    body {
+      background-color: #161616;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .container {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+    }
+    input {
+      background: #292929;
+      color: white;
+    }
+    button {
+      background: #32CD32;
+      color: white;
+      font-weight: bold;
+    }
+    .back-button {
+      background: none;
+      color: #32CD32;
+      border: none;
+      font-size: 16px;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- Кнопка "Назад" -->
+    <button class="back-button" id="backBtn">← Назад</button>
+
     <h2>Информация о доставке</h2>
 
     <label>Город</label>
-    <input type="text" id="city" value="Москва">
+    <input type="text" id="city" value="">
 
     <label>Адрес</label>
     <input type="text" id="address">
@@ -28,35 +64,53 @@
     <label>Телефон</label>
     <input type="text" id="recipient_phone">
 
-    <button onclick="saveDeliveryInfo()">Сохранить</button>
+    <button id="saveBtn">Сохранить</button>
 </div>
 
 <script>
-    let tg = window.Telegram.WebApp;
+  // Получаем order_id, partner_id из URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderId = urlParams.get('order_id');
+  const partnerId = urlParams.get('partner_id');
 
-    function loadSavedData() {
-        const savedData = JSON.parse(localStorage.getItem('deliveryData')) || {};
-        document.getElementById('city').value = savedData.city || 'Москва';
-        document.getElementById('address').value = savedData.address || '';
-        document.getElementById('recipient_name').value = savedData.recipient_name || '';
-        document.getElementById('recipient_phone').value = savedData.recipient_phone || '';
+  // Кнопка "Назад" → возвращаемся на order_checkout.html
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (!orderId || !partnerId) {
+      // если нет, просто назад в history
+      window.history.back();
+    } else {
+      window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
     }
+  });
 
-    function saveDeliveryInfo() {
-        const deliveryData = {
-            city: document.getElementById('city').value,
-            address: document.getElementById('address').value,
-            recipient_name: document.getElementById('recipient_name').value,
-            recipient_phone: document.getElementById('recipient_phone').value,
-        };
+  // При загрузке – подгружаем сохранённые данные (если храним в localStorage)
+  function loadSavedData() {
+    const savedData = JSON.parse(localStorage.getItem('deliveryData') || '{}');
+    document.getElementById('city').value = savedData.city || 'Москва';
+    document.getElementById('address').value = savedData.address || '';
+    document.getElementById('recipient_name').value = savedData.recipient_name || '';
+    document.getElementById('recipient_phone').value = savedData.recipient_phone || '';
+  }
+  loadSavedData();
 
-        localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
+  // При нажатии "Сохранить" – сохраняем данные и возвращаемся на order_checkout
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const deliveryData = {
+      city: document.getElementById('city').value,
+      address: document.getElementById('address').value,
+      recipient_name: document.getElementById('recipient_name').value,
+      recipient_phone: document.getElementById('recipient_phone').value
+    };
+    localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
 
-        // Вернуться на главную страницу
-        window.location.href = "index.html";
+    // Возвращаемся на "Ваш заказ"
+    if (orderId && partnerId) {
+      window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
+    } else {
+      // fallback
+      window.history.back();
     }
-
-    loadSavedData();
+  });
 </script>
 
 </body>
