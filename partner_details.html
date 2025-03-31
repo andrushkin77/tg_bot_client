@@ -46,7 +46,7 @@
 
     // 1) Загружаем данные партнёра
     function loadPartnerDetails() {
-        fetch(`https://u2dd9q-169-150-209-165.ru.tuna.am/api/partners/${partnerId}`)
+        fetch(`https://nh97yg-169-150-209-165.ru.tuna.am/api/partners/${partnerId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "error") {
@@ -78,8 +78,7 @@
 
     // 2) Загружаем данные о заказе и отклике
     function loadOrderDetails() {
-        // Запросим детали заказа (в т.ч. image_url, доставка и т.д.)
-        fetch(`https://u2dd9q-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+        fetch(`https://nh97yg-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "error") {
@@ -93,15 +92,13 @@
             })
             .catch(() => alert("Ошибка загрузки данных заказа."));
 
-        // Запросим конкретный отклик, чтобы узнать price/комментарий
-        fetch(`https://u2dd9q-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
+        fetch(`https://nh97yg-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
             .then(res => res.json())
             .then(data => {
                 if (!data.offers) {
                     alert("Нет предложений.");
                     return;
                 }
-                // Найдём отклик по offerId
                 const offer = data.offers.find(o => o.id == offerId);
                 if (!offer) {
                     alert("Отклик не найден.");
@@ -112,20 +109,25 @@
             .catch(() => alert("Ошибка загрузки отклика."));
     }
 
-    // 3) Кнопка «Выбрать партнёра»
+    // Обновлённая функция "Выбрать партнёра" – сохраняет данные в localStorage и переходит на order_checkout.html
     function selectPartner() {
-        // Можно отправить действие в бота (примерно как selectOffer):
-        const data = {
-            action: "select_offer",
-            offer_id: offerId
+        // Собираем данные партнёра с текущей страницы
+        const partnerData = {
+            id: partnerId,
+            name: document.getElementById('partnerName').innerText,
+            description: document.getElementById('partnerDescription').innerText,
+            address: document.getElementById('partnerAddress').innerText,
+            map_link: document.getElementById('mapLink').href,
+            vk_link: document.getElementById('vkLink').href,
+            tg_link: document.getElementById('tgLink').href
         };
-        Telegram.WebApp.sendData(JSON.stringify(data));
-        Telegram.WebApp.close();
+        localStorage.setItem('selectedPartner', JSON.stringify(partnerData));
+        // Переходим на страницу оформления заказа
+        window.location.href = `order_checkout.html?order_id=${orderId}`;
     }
 
-    // Кнопка «Назад»
+    // Кнопка "Назад"
     function goBack() {
-        // Возвращаемся на offers.html
         window.location.href = `offers.html?order_id=${orderId}`;
     }
 
