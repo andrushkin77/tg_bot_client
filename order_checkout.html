@@ -191,7 +191,7 @@
       <h2>Ваш заказ</h2>
     </div>
     <div class="order-body">
-      <!-- Название композиции (ответ клиента на вопрос) -->
+      <!-- Название композиции -->
       <strong id="compositionName"></strong>
       <!-- Редактируемый комментарий -->
       <textarea id="clientComment" rows="3" placeholder="Добавьте комментарий..."></textarea>
@@ -217,7 +217,7 @@
     <p id="deliveryInfo">Доставка: ...</p>
     <p id="orderTotal">Итого: ... руб.</p>
     
-    <!-- Поля для редактирования (Информация о доставке, Имя, Телефон) -->
+    <!-- Поля для редактирования -->
     <div class="field" onclick="openSubModal('delivery')">Информация о доставке</div>
     <div class="field" onclick="openSubModal('name')">Имя</div>
     <div class="field" onclick="openSubModal('phone')">Телефон</div>
@@ -240,13 +240,13 @@
   let tg = window.Telegram.WebApp;
   tg.expand();
 
-  // Получаем данные, сохранённые на предыдущих страницах (из localStorage)
-  const compositionName = localStorage.getItem('compositionName') || "Романтический сюрприз";
-  const clientComment = localStorage.getItem('clientComment') || "";
+  // Получаем данные из localStorage, сохранённые на предыдущих страницах
+  const compositionNameLS = localStorage.getItem('compositionName') || "Романтический сюрприз";
+  const clientCommentLS = localStorage.getItem('clientComment') || "";
   const deliveryData = JSON.parse(localStorage.getItem('deliveryData') || '{}');
   const selectedPartner = JSON.parse(localStorage.getItem('selectedPartner') || '{}');
   
-  // Если партнер выбран, подставляем его данные
+  // Подставляем данные выбранного партнёра
   if (selectedPartner && selectedPartner.name) {
     document.getElementById('executorName').innerText = selectedPartner.name;
   } else {
@@ -254,31 +254,45 @@
   }
   
   // Заполняем поля заказа
-  document.getElementById('compositionName').innerText = `Композиция: "${compositionName}"`;
-  document.getElementById('clientComment').value = clientComment;
+  document.getElementById('compositionName').innerText = `Композиция: "${compositionNameLS}"`;
+  document.getElementById('clientComment').value = clientCommentLS;
   
-  // Персонализация иконки воздушных шаров:
-  // Например, можно добавить динамическую надпись поверх иконки. Здесь вставим alt-текст в title.
+  // Персонализация иконки воздушных шаров (например, добавляем надпись в title)
   document.getElementById('balloonIcon').title = `С праздником, ${selectedPartner.name || "друг"}!`;
-
-  // Примерные данные заказа (если order_details уже получены с сервера, их можно заменить)
-  const orderData = {
-    orderId: localStorage.getItem('orderId') || 123456,
-    orderNumber: localStorage.getItem('orderNumber') || "Заказ №123456",
-    deliveryInfo: deliveryData.address ? `Доставка: ${deliveryData.address}, ${deliveryData.city}` : "Доставка: не указана",
-    orderPrice: localStorage.getItem('orderPrice') || 1200,
-    deliveryPrice: localStorage.getItem('deliveryPrice') || 300,
-    total: localStorage.getItem('total') || 1500
-  };
-
+  
+  // Функция для получения деталей заказа с сервера
+  function loadOrderDetails() {
+    // Получаем order_id из URL-параметров
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('order_id');
+    if (!orderId) return;
+    
+    fetch(`https://nh97yg-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          const order = data.order;
+          // Обновляем поля в модальном окне
+          document.getElementById('orderNumber').innerText = order.orderNumber || `Заказ №${order.id}`;
+          document.getElementById('orderDescription').innerText = `Композиция: "${order.description || compositionNameLS}"`;
+          document.getElementById('deliveryInfo').innerText = order.delivery_type ? `Доставка: ${order.delivery_type}, ${order.delivery_address}, ${order.delivery_time}` : (deliveryData.address ? `Доставка: ${deliveryData.address}, ${deliveryData.city}` : "Доставка: не указана");
+          document.getElementById('orderTotal').innerText = `Итого: ${order.total || (order.orderPrice + order.deliveryPrice)} руб.`;
+          document.getElementById('confirmPaymentBtn').innerText = `Оплатить ${order.total || (order.orderPrice + order.deliveryPrice)} руб.`;
+        } else {
+          console.error("Ошибка получения деталей заказа:", data.message);
+        }
+      })
+      .catch(err => {
+        console.error("Ошибка fetch order_details:", err);
+      });
+  }
+  
+  // Загружаем детали заказа при загрузке страницы
+  loadOrderDetails();
+  
   // Функция открытия модального окна оформления заказа
   function openCheckout() {
     document.getElementById('checkoutModal').style.display = 'flex';
-    document.getElementById('orderNumber').innerText = orderData.orderNumber;
-    document.getElementById('orderDescription').innerText = `Композиция: "${compositionName}"`;
-    document.getElementById('deliveryInfo').innerText = orderData.deliveryInfo;
-    document.getElementById('orderTotal').innerText = `Итого: ${orderData.total} руб.`;
-    document.getElementById('confirmPaymentBtn').innerText = `Оплатить ${orderData.total} руб.`;
   }
   
   // Закрытие модального окна
@@ -288,11 +302,11 @@
   
   document.getElementById('payBtn').addEventListener('click', openCheckout);
   
-  // Функция подтверждения оплаты (сюда можно добавить отправку данных на сервер)
+  // Функция подтверждения оплаты (здесь можно добавить отправку данных на сервер)
   function confirmPayment() {
     alert("Оплата прошла успешно!");
     closeCheckout();
-    // При необходимости можно очистить данные или перенаправить пользователя
+    // Дополнительно: можно очистить localStorage или перенаправить пользователя
   }
   
   // Субмодальное окно для редактирования дополнительных данных
@@ -310,7 +324,7 @@
       subTitle.innerText = "Телефон";
       subInput.placeholder = "Введите ваш телефон";
     }
-    // Сохраняем текущий режим в атрибуте data-mode
+    // Сохраняем режим в data-mode
     subInput.setAttribute('data-mode', mode);
   }
   
@@ -320,24 +334,29 @@
     const value = subInput.value.trim();
     if (value) {
       if (mode === 'delivery') {
-        orderData.deliveryInfo = value;
+        // Обновляем информацию о доставке
+        // Можно сохранить и обновить orderData, если нужно
         document.getElementById('deliveryInfo').innerText = value;
       } else if (mode === 'name') {
-        orderData.clientName = value;
+        // Сохраняем имя клиента
+        // Здесь можно сохранить в orderData или localStorage
+        console.log("Имя:", value);
       } else if (mode === 'phone') {
-        orderData.clientPhone = value;
+        console.log("Телефон:", value);
       }
-      // При желании сохранить обновлённые данные в localStorage
-      localStorage.setItem('orderData', JSON.stringify(orderData));
     }
     document.getElementById('subModal').style.display = 'none';
     subInput.value = "";
   }
   
-  // Кнопка "Смотреть детали" исполнителя – можно реализовать вызов модального окна с подробностями о партнёре
+  // Кнопка "Смотреть детали" исполнителя – переадресация на partner_details.html
   document.getElementById('showPartnerDetailsBtn').addEventListener('click', () => {
-    // Например, можно перенаправить на страницу partner_details.html
-    window.location.href = `partner_details.html?partner_id=${selectedPartner.id || 0}`;
+    // Если у selectedPartner есть id, переходим на partner_details.html с нужными параметрами
+    if (selectedPartner && selectedPartner.id) {
+      window.location.href = `partner_details.html?partner_id=${selectedPartner.id}&order_id=${new URLSearchParams(window.location.search).get('order_id')}`;
+    } else {
+      alert("Данные исполнителя отсутствуют.");
+    }
   });
 </script>
 </body>
