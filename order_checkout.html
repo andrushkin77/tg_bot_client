@@ -105,6 +105,12 @@
       color: #ccc;
       margin-bottom: 10px;
     }
+    /* Дополнительные стили для отображения доставки */
+    .delivery-details {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ccc;
+    }
   </style>
 </head>
 <body>
@@ -142,7 +148,14 @@
     </div>
   </div>
 
-  <!-- Блок полей (как Durger King) -->
+  <!-- Дополнительные данные доставки -->
+  <div class="delivery-details">
+    <p>Адрес доставки: <span id="deliveryAddressDisplay">...</span></p>
+    <p>Имя получателя: <span id="recipientNameDisplay">...</span></p>
+    <p>Телефон: <span id="recipientPhoneDisplay">...</span></p>
+  </div>
+
+  <!-- Блок полей -->
   <div class="fields-box">
     <div class="field-item" onclick="openPaymentPage()">Способ оплаты</div>
     <div class="field-item" onclick="openDeliveryPage()">Информация о доставке</div>
@@ -183,9 +196,12 @@
           return;
         }
         const order = data.order;
-        // Заполняем элементы
         document.getElementById('orderNumber').innerText = `Order #${order.id}`;
         document.getElementById('compositionName').innerText = `Композиция: "${order.description || '...'}"`;
+        // Дополнительные поля доставки
+        document.getElementById('deliveryAddressDisplay').innerText = order.delivery_address || 'Не указан';
+        document.getElementById('recipientNameDisplay').innerText = order.recipient_name || 'Не указан';
+        document.getElementById('recipientPhoneDisplay').innerText = order.recipient_phone || 'Не указан';
       })
       .catch(err => {
         console.error("Ошибка при fetch order_details:", err);
@@ -240,7 +256,7 @@
       alert("Партнёр не выбран");
       return;
     }
-    window.location.href = `partner_details.html?partner_id=${partnerId}&order_id=${orderId}`;
+    window.location.href = `partner_details.html?partner_id=${partnerId}&order_id=${orderId}&confirm=1`;
   });
 
   // Поле "Способ оплаты" — заглушка
@@ -250,7 +266,7 @@
 
   // "Информация о доставке", "Имя", "Номер телефона" – ведут на delivery.html
   function openDeliveryPage() {
-    window.location.href = `delivery.html?order_id=${orderId}&partner_id=${partnerId}`;
+    window.location.href = `delivery.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
   }
 </script>
 </body>
