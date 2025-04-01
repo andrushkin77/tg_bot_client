@@ -1,7 +1,7 @@
-<!-- partner_details.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <meta charset="UTF-8">
     <title>Детали исполнителя</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -10,6 +10,20 @@
         .photos img { width: 80px; margin-right: 5px; border-radius: 5px; }
         .back-button { background: none; color: #32CD32; border: none; cursor: pointer; font-size: 16px; text-decoration: underline; margin-bottom: 10px; }
         .select-button { margin-top: 20px; background: #32CD32; border: none; border-radius: 5px; padding: 10px; color: white; width: 100%; }
+        .social-links {
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+        }
+        .social-box {
+            display: inline-block;
+            padding: 5px 10px;
+            border: 1px solid #32CD32;
+            border-radius: 5px;
+            color: #32CD32;
+            text-decoration: none;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -19,8 +33,14 @@
     <h2 id="partnerName">...</h2>
     <p id="partnerDescription"></p>
     <p>Адрес: <span id="partnerAddress"></span></p>
-    <p><a id="mapLink" href="#" target="_blank">Открыть карту</a></p>
-    <p><a id="vkLink" href="#" target="_blank">VK</a> | <a id="tgLink" href="#" target="_blank">Telegram</a></p>
+    
+    <!-- Социальные ссылки -->
+    <div class="social-links">
+        <a class="social-box" id="mapLink" href="#" target="_blank">Яндекс</a>
+        <a class="social-box" id="2gisLink" href="#" target="_blank">2ГИС</a>
+        <a class="social-box" id="vkLink" href="#" target="_blank">VK</a>
+        <a class="social-box" id="tgLink" href="#" target="_blank">Telegram</a>
+    </div>
 
     <div class="photos" id="photosContainer"></div>
 
@@ -28,7 +48,7 @@
 
     <h3>Ваш заказ</h3>
     <img id="orderImage" style="width:100%; border-radius:5px;" alt="Фото заказа">
-    <p id="deliveryInfo"></p>
+    <div id="deliveryInfo"></div>
     <p>Цена от исполнителя: <b id="offerPrice"></b> руб.</p>
 
     <button class="select-button" onclick="selectPartner()">Выбрать этого партнёра</button>
@@ -58,8 +78,9 @@
                 document.getElementById('partnerDescription').innerText = partner.description;
                 document.getElementById('partnerAddress').innerText = partner.address;
 
-                // Ссылки
+                // Социальные ссылки
                 document.getElementById('mapLink').href = partner.map_link || "#";
+                document.getElementById('2gisLink').href = partner.map_link || "#";
                 document.getElementById('vkLink').href = partner.vk_link || "#";
                 document.getElementById('tgLink').href = partner.tg_link || "#";
 
@@ -87,8 +108,11 @@
                 }
                 const order = data.order;
                 document.getElementById('orderImage').src = order.image_url;
-                document.getElementById('deliveryInfo').innerText = 
-                    `Тип доставки: ${order.delivery_type}, Адрес: ${order.delivery_address}, Время: ${order.delivery_time}`;
+                document.getElementById('deliveryInfo').innerHTML = `
+                  Тип доставки: ${order.delivery_type}<br>
+                  Адрес: ${order.delivery_address}<br>
+                  Время: ${order.delivery_time}
+                `;
             })
             .catch(() => alert("Ошибка загрузки данных заказа."));
 
@@ -123,7 +147,7 @@
         };
         localStorage.setItem('selectedPartner', JSON.stringify(partnerData));
         // Переходим на страницу оформления заказа
-        window.location.href = `order_checkout.html?order_id=${orderId}`;
+        window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
     }
 
     // Кнопка "Назад"
