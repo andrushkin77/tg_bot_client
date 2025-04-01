@@ -49,14 +49,16 @@
     /* Кнопка "← Назад" в левом верхнем углу */
     .back-button {
       position: absolute;
-      top: 20px;
-      left: 20px;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
       background: none;
       color: #32CD32;
       border: none;
       font-size: 16px;
       text-decoration: underline;
       cursor: pointer;
+      padding: 0;
     }
   </style>
 </head>
@@ -98,9 +100,7 @@
     }
   });
 
-  // При загрузке – грузим текущие данные из БД (чтобы поля были заполнены)
-  // Эндпоинт может быть тот же /api/order_details?order_id=... 
-  // или отдельный /api/delivery_details?order_id=...
+  // При загрузке – грузим текущие данные из БД
   function loadDeliveryData() {
     if (!orderId) return;
     fetch(`https://8bs2l0-185-77-216-4.ru.tuna.am/api/order_details?order_id=${orderId}`)
@@ -142,7 +142,6 @@
     .then(data => {
       if (data.status === "success") {
         // Успешно обновили в БД
-        // Возвращаемся на страницу "Ваш заказ"
         window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
       } else {
         alert("Ошибка при сохранении: " + data.message);
