@@ -43,7 +43,12 @@
     document.getElementById('orderImage').src = imageUrl;
 
     function openDeliveryPage() {
-        window.location.href = "delivery.html";
+        let orderId = localStorage.getItem('order_id');
+        if (orderId) {
+            window.location.href = "delivery.html?order_id=" + orderId;
+        } else {
+            alert("Заказ ещё не создан.");
+        }
     }
 
     function submitOrder() {
