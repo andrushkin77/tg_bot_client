@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Ваш заказ</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      background-color: #161616;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0; 
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    h2 {
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+    .thin-line {
+      height: 1px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      margin: 15px 0;
+    }
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #ccc;
+    }
+    .order-item.order-total {
+      font-weight: bold;
+    }
+    .executor-box {
+      margin-top: 20px;
+      background: #292929;
+      border-radius: 10px;
+      padding: 15px;
+    }
+    .executor-title {
+      font-size: 14px;
+      color: #ccc;
+      margin-bottom: 10px;
+    }
+    .executor-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .executor-name {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .details-button {
+      background: #32CD32;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 12px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .fields-box {
+      margin-top: 20px;
+      background: #292929;
+      border-radius: 10px;
+      padding: 15px;
+    }
+    .field-item {
+      background: #1e1e1e;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .field-item:hover {
+      background: #333;
+    }
+    .pay-button {
+      width: 100%;
+      background: #32CD32;
+      border: none;
+      border-radius: 5px;
+      padding: 15px;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .order-number {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .composition-text {
+      font-size: 14px;
+      color: #ccc;
+      margin-bottom: 10px;
+    }
+    /* Дополнительные стили для отображения доставки */
+    .delivery-details {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Ваш заказ</h2>
+
+  <!-- Номер заказа -->
+  <div class="order-number" id="orderNumber">Order #...</div>
+
+  <!-- Название композиции -->
+  <div class="composition-text" id="compositionName">Композиция: ...</div>
+
+  <hr class="thin-line">
+
+  <!-- Стоимость и доставка -->
+  <div class="order-item">
+    <span>Стоимость композиции</span>
+    <span id="compositionPrice">...</span>
+  </div>
+  <div class="order-item">
+    <span>Доставка</span>
+    <span id="deliveryPrice">0</span>
+  </div>
+  <div class="order-item order-total">
+    <span>ИТОГО</span>
+    <span id="totalPrice">...</span>
+  </div>
+
+  <!-- Блок "Ваш исполнитель" -->
+  <div class="executor-box">
+    <div class="executor-title">Ваш исполнитель</div>
+    <div class="executor-content">
+      <div class="executor-name" id="executorName">...</div>
+      <button class="details-button" id="showPartnerDetailsBtn">Смотреть детали</button>
+    </div>
+  </div>
+
+  <!-- Дополнительные данные доставки -->
+  <div class="delivery-details">
+    <p>Адрес доставки: <span id="deliveryAddressDisplay">...</span></p>
+    <p>Имя получателя: <span id="recipientNameDisplay">...</span></p>
+    <p>Телефон: <span id="recipientPhoneDisplay">...</span></p>
+  </div>
+
+  <!-- Блок полей -->
+  <div class="fields-box">
+    <div class="field-item" onclick="openPaymentPage()">Способ оплаты</div>
+    <div class="field-item" onclick="openDeliveryPage()">Информация о доставке</div>
+    <div class="field-item" onclick="openDeliveryPage()">Имя</div>
+    <div class="field-item" onclick="openDeliveryPage()">Номер телефона</div>
+  </div>
+
+  <!-- Кнопка "Оплатить" -->
+  <button class="pay-button" id="payBtn">Оплатить</button>
+</div>
+
+<script>
+  /* Защита, если Telegram.WebApp недоступен (тестирование вне Телеграма) */
+  let tg;
+  if (window.Telegram && Telegram.WebApp) {
+    tg = Telegram.WebApp;
+    tg.expand();
+  } else {
+    console.log("Запуск вне Telegram WebApp.");
+  }
+
+  // Получаем order_id, partner_id из URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderId = urlParams.get('order_id');
+  const partnerId = urlParams.get('partner_id');
+
+  // 1) Загружаем детали заказа
+  function loadOrderDetails() {
+    if (!orderId) {
+      console.error("order_id не указан!");
+      return;
+    }
+    fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/order_details?order_id=${orderId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status !== "success") {
+          console.error("Ошибка order_details:", data.message);
+          return;
+        }
+        const order = data.order;
+        document.getElementById('orderNumber').innerText = `Order #${order.id}`;
+        document.getElementById('compositionName').innerText = `Композиция: "${order.description || '...'}"`;
+        // Дополнительные поля доставки
+        document.getElementById('deliveryAddressDisplay').innerText = order.delivery_address || 'Не указан';
+        document.getElementById('recipientNameDisplay').innerText = order.recipient_name || 'Не указан';
+        document.getElementById('recipientPhoneDisplay').innerText = order.recipient_phone || 'Не указан';
+      })
+      .catch(err => {
+        console.error("Ошибка при fetch order_details:", err);
+      });
+  }
+
+  // 2) Загружаем отклик партнёра (price, partner_name) из /api/offers
+  function loadPartnerOffer() {
+    if (!orderId || !partnerId) {
+      console.log("Не хватает orderId или partnerId");
+      return;
+    }
+    fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/offers?order_id=${orderId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.offers) {
+          console.error("Нет offers:", data);
+          return;
+        }
+        // Ищем тот offer, где partner_id == partnerId
+        const offer = data.offers.find(o => String(o.partner_id) === partnerId);
+        if (!offer) {
+          console.error("Не найден отклик партнёра", partnerId);
+          return;
+        }
+        // Заполняем исполнителя
+        document.getElementById('executorName').innerText = offer.partner_name;
+        // Заполняем стоимость
+        document.getElementById('compositionPrice').innerText = offer.price;
+        // ИТОГО = offer.price + доставка (пока 0)
+        const total = Number(offer.price) + 0;
+        document.getElementById('totalPrice').innerText = total;
+      })
+      .catch(err => {
+        console.error("Ошибка fetch offers:", err);
+      });
+  }
+
+  loadOrderDetails();
+  loadPartnerOffer();
+
+  // "Оплатить"
+  document.getElementById('payBtn').addEventListener('click', () => {
+    const totalPrice = document.getElementById('totalPrice').innerText;
+    alert(`Оплата заказа #${orderId} на сумму ${totalPrice} руб.`);
+    // Здесь можно сделать запрос на /api/pay_order
+  });
+
+  // Кнопка "Смотреть детали" исполнителя
+  document.getElementById('showPartnerDetailsBtn').addEventListener('click', () => {
+    if (!partnerId) {
+      alert("Партнёр не выбран");
+      return;
+    }
+    window.location.href = `partner_details.html?partner_id=${partnerId}&order_id=${orderId}&confirm=1`;
+  });
+
+  // Поле "Способ оплаты" — заглушка
+  function openPaymentPage() {
+    alert("Выбор способа оплаты (пока не реализован)");
+  }
+
+  // "Информация о доставке", "Имя", "Номер телефона" – ведут на delivery.html
+  function openDeliveryPage() {
+    window.location.href = `delivery.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
+  }
+</script>
+</body>
+</html>
