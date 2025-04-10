@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Детали заказа для партнёра</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { background-color: #161616; color: #fff; font-family: Arial, sans-serif; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; }
+    img { width: 100%; border-radius: 10px; }
+    .info { margin-top: 20px; }
+    .info p { margin: 10px 0; }
+    button { background: #32CD32; color: #fff; border: none; border-radius: 5px; padding: 10px; margin-top: 20px; cursor: pointer; width: 100%; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Детали заказа</h2>
+  <img id="orderImage" src="" alt="Фото заказа">
+  <div class="info">
+    <p id="orderDescription">Описание: </p>
+    <p id="orderWishes">Пожелания: </p>
+    <p id="orderDelivery">Доставка: </p>
+    <p id="orderCustomer">Заказчик: </p>
+  </div>
+  <button id="respondBtn">Откликнуться на заказ</button>
+</div>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderId = urlParams.get('order_id');
+  const apiBase = "https://gex90e-95-164-118-165.ru.tuna.am/api";
+  const partnerTelegramId = localStorage.getItem("partner_telegram_id") || "";
+
+  function loadOrderDetails() {
+    fetch(`${apiBase}/order_details?order_id=${orderId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status !== "success") {
+          alert("Ошибка загрузки заказа.");
+          return;
+        }
+        const order = data.order;
+        document.getElementById('orderImage').src = order.image_url;
+        document.getElementById('orderDescription').innerText = "Описание: " + order.description;
+        document.getElementById('orderWishes').innerText = "Пожелания: " + order.wishes;
+        document.getElementById('orderDelivery').innerText = "Доставка: " + (order.delivery_type || "Не указана") + " – " + (order.delivery_time || "");
+        document.getElementById('orderCustomer').innerText = "Заказчик: " + (order.customer_name || "Не указан");
+      })
+      .catch(() => alert("Ошибка при загрузке данных заказа."));
+  }
+  loadOrderDetails();
+
+  document.getElementById('respondBtn').addEventListener('click', () => {
+    const price = prompt("Введите цену за выполнение заказа:");
+    const comment = prompt("Добавьте комментарий (необязательно):");
+    fetch(`${apiBase}/respond`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        telegram_id: partnerTelegramId,
+        order_id: orderId,
+        price: price,
+        comment: comment
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message);
+    })
+    .catch(() => alert("Ошибка отправки отклика."));
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Информация о доставке</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      background-color: #161616;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0; 
+      padding: 20px;
+      position: relative;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      position: relative;
+    }
+    h2 { margin-bottom: 15px; font-size: 20px; }
+    label { margin-top: 10px; display: block; }
+    input, button {
+      width: 100%; padding: 10px; margin-top: 10px; border: none; border-radius: 5px;
+    }
+    input { background: #292929; color: white; }
+    button { background: #32CD32; color: white; font-weight: bold; margin-top: 20px; }
+    .back-button {
+      position: absolute; top: 10px; left: 10px; z-index: 10; background: none;
+      color: #32CD32; border: none; font-size: 16px; text-decoration: underline;
+      cursor: pointer; padding: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+    <button class="back-button" id="backBtn">← Назад</button>
+    <h2>Информация о доставке</h2>
+    <label>Город</label>
+    <input type="text" id="city" value="">
+    <label>Адрес</label>
+    <input type="text" id="address">
+    <label>Имя</label>
+    <input type="text" id="recipient_name">
+    <label>Телефон</label>
+    <input type="text" id="recipient_phone">
+    <button id="saveBtn">Сохранить</button>
+</div>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderId = urlParams.get('order_id');
+  const partnerId = urlParams.get('partner_id');
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (orderId && partnerId) {
+      window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
+    } else {
+      window.history.back();
+    }
+  });
+
+  function loadDeliveryData() {
+    if (!orderId) return;
+    fetch(`https://gex90e-95-164-118-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          const order = data.order;
+          document.getElementById('city').value = order.city || '';
+          document.getElementById('address').value = order.delivery_address || '';
+          document.getElementById('recipient_name').value = order.recipient_name || '';
+          document.getElementById('recipient_phone').value = order.recipient_phone || '';
+        }
+      })
+      .catch(err => console.error("Ошибка загрузки доставки:", err));
+  }
+  loadDeliveryData();
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    if (!orderId) {
+      alert("Нет order_id");
+      return;
+    }
+    const body = {
+      order_id: orderId,
+      city: document.getElementById('city').value,
+      delivery_address: document.getElementById('address').value,
+      recipient_name: document.getElementById('recipient_name').value,
+      recipient_phone: document.getElementById('recipient_phone').value
+    };
+    fetch(`https://gex90e-95-164-118-165.ru.tuna.am/api/update_order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
+      } else {
+        alert("Ошибка при сохранении: " + data.message);
+      }
+    })
+    .catch(err => {
+      alert("Сетевая ошибка при сохранении");
+      console.error(err);
+    });
+  });
+</script>
+</body>
+</html>
