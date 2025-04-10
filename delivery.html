@@ -64,7 +64,7 @@
 
   function loadDeliveryData() {
     if (!orderId) return;
-    fetch(`https://gex90e-95-164-118-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://v3v26y-95-164-118-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -91,7 +91,7 @@
       recipient_name: document.getElementById('recipient_name').value,
       recipient_phone: document.getElementById('recipient_phone').value
     };
-    fetch(`https://gex90e-95-164-118-165.ru.tuna.am/api/update_order`, {
+    fetch(`https://v3v26y-95-164-118-165.ru.tuna.am/api/update_order`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
