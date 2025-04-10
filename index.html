@@ -40,14 +40,14 @@
     document.getElementById('orderImage').src = imageUrl;
 
     function openDeliveryPage() {
-    let orderId = localStorage.getItem('order_id');
-    if (orderId) {
-         window.location.href = "delivery.html?order_id=" + orderId;
-    } else {
-         // Если заказа ещё нет, переходим на страницу доставки без order_id
-         window.location.href = "delivery.html";
+        let orderId = localStorage.getItem('order_id');
+        if (orderId) {
+             window.location.href = "delivery.html?order_id=" + orderId;
+        } else {
+             // Если заказа ещё нет, переходим на страницу доставки без order_id
+             window.location.href = "delivery.html";
+        }
     }
-}
 
     function submitOrder() {
         const deliveryData = JSON.parse(localStorage.getItem('deliveryData')) || {};
