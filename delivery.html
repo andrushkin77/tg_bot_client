@@ -11,7 +11,6 @@
       font-family: Arial, sans-serif;
       margin: 0; 
       padding: 20px;
-      position: relative;
     }
     .container {
       max-width: 400px;
@@ -29,15 +28,23 @@
     input { background: #292929; color: white; }
     button { background: #32CD32; color: white; font-weight: bold; margin-top: 20px; }
     .back-button {
-      position: absolute; top: 10px; left: 10px; z-index: 10; background: none;
-      color: #32CD32; border: none; font-size: 16px; text-decoration: underline;
-      cursor: pointer; padding: 0;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: none;
+      color: #32CD32;
+      border: none;
+      font-size: 16px;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0;
     }
   </style>
 </head>
 <body>
+<button class="back-button" id="backBtn">← Назад</button>
 <div class="container">
-    <button class="back-button" id="backBtn">← Назад</button>
     <h2>Информация о доставке</h2>
     <label>Город</label>
     <input type="text" id="city" value="">
@@ -51,7 +58,7 @@
 </div>
 <script>
   const urlParams = new URLSearchParams(window.location.search);
-  const orderId = urlParams.get('order_id');
+  const orderId = urlParams.get('order_id'); // может быть отсутствующим, если заказ ещё не создан
   const partnerId = urlParams.get('partner_id');
 
   document.getElementById('backBtn').addEventListener('click', () => {
@@ -62,9 +69,9 @@
     }
   });
 
-  function loadDeliveryData() {
-    if (!orderId) return;
-    fetch(`https://v3v26y-95-164-118-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+  // Если заказ уже создан, можно загрузить данные
+  if (orderId) {
+    fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -77,37 +84,38 @@
       })
       .catch(err => console.error("Ошибка загрузки доставки:", err));
   }
-  loadDeliveryData();
 
   document.getElementById('saveBtn').addEventListener('click', () => {
-    if (!orderId) {
-      alert("Нет order_id");
-      return;
-    }
-    const body = {
-      order_id: orderId,
+    const deliveryData = {
       city: document.getElementById('city').value,
-      delivery_address: document.getElementById('address').value,
+      address: document.getElementById('address').value,
       recipient_name: document.getElementById('recipient_name').value,
       recipient_phone: document.getElementById('recipient_phone').value
     };
-    fetch(`https://v3v26y-95-164-118-165.ru.tuna.am/api/update_order`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "success") {
-        window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
-      } else {
-        alert("Ошибка при сохранении: " + data.message);
-      }
-    })
-    .catch(err => {
-      alert("Сетевая ошибка при сохранении");
-      console.error(err);
-    });
+    if (!orderId) {
+      // Если заказ ещё не создан – сохраняем данные локально
+      localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
+      alert("Данные о доставке сохранены");
+    } else {
+      // Если order_id есть, обновляем данные в БД через API
+      fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/update_order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderId, ...deliveryData })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
+        } else {
+          alert("Ошибка при сохранении: " + data.message);
+        }
+      })
+      .catch(err => {
+        alert("Сетевая ошибка при сохранении");
+        console.error(err);
+      });
+    }
   });
 </script>
 </body>
