@@ -71,7 +71,7 @@
 
   // Если заказ уже создан, можно загрузить данные
   if (orderId) {
-    fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://cbw7lj-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -98,7 +98,7 @@
       alert("Данные о доставке сохранены");
     } else {
       // Если order_id есть, обновляем данные в БД через API
-      fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/update_order`, {
+      fetch(`https://cbw7lj-169-150-209-165.ru.tuna.am/api/update_order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id: orderId, ...deliveryData })
