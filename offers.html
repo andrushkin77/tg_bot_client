@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Предложения от партнеров</title>
+    <title>Предложения от партнёров</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
@@ -16,48 +16,46 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Предложения от партнеров</h2>
-        <div id="offersContainer">Загрузка...</div>
-    </div>
+<div class="container">
+    <h2>Предложения от партнёров</h2>
+    <div id="offersContainer">Загрузка...</div>
+</div>
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('order_id');
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
+    function viewDetails(partnerId, offerId) {
+        window.location.href = `order_detail_partner.html?partner_id=${partnerId}&offer_id=${offerId}&order_id=${orderId}`;
+    }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('order_id');
-
-        function viewDetails(partnerId, offerId) {
-            window.location.href = `partner_details.html?partner_id=${partnerId}&offer_id=${offerId}&order_id=${orderId}`;
-        }
-
-        function loadOffers() {
-            fetch(`https://m0rwro-79-127-211-217.ru.tuna.am/api/offers?order_id=${orderId}`)
-                .then(res => res.json())
-                .then(data => {
-                    const container = document.getElementById('offersContainer');
-                    container.innerHTML = '';
-                    if (!data.offers || data.offers.length === 0) {
-                        container.innerHTML = '<p class="no-offers">Пока предложений нет.</p>';
-                        return;
-                    }
-                    data.offers.forEach(offer => {
-                        const offerDiv = document.createElement('div');
-                        offerDiv.className = 'offer';
-                        offerDiv.innerHTML = `
-                            <h3>${offer.partner_name}</h3>
-                            <p>Стоимость: <strong>${offer.price} руб.</strong></p>
-                            <button onclick="viewDetails(${offer.partner_id}, ${offer.id})">Смотреть детали</button>
-                        `;
-                        container.appendChild(offerDiv);
-                    });
-                })
-                .catch(() => {
-                    document.getElementById('offersContainer').innerText = 'Ошибка загрузки предложений.';
+    function loadOffers() {
+        fetch(`https://e5gxi6-79-127-211-217.ru.tuna.am/api/offers?order_id=${orderId}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('offersContainer');
+                container.innerHTML = '';
+                if (!data.offers || data.offers.length === 0) {
+                    container.innerHTML = '<p class="no-offers">Пока предложений нет.</p>';
+                    return;
+                }
+                data.offers.forEach(offer => {
+                    const offerDiv = document.createElement('div');
+                    offerDiv.className = 'offer';
+                    offerDiv.innerHTML = `
+                        <h3>${offer.partner_name}</h3>
+                        <p>Стоимость: <strong>${offer.price} руб.</strong></p>
+                        <button onclick="viewDetails(${offer.partner_id}, ${offer.id})">Смотреть детали</button>
+                    `;
+                    container.appendChild(offerDiv);
                 });
-        }
-        loadOffers();
-    </script>
+            })
+            .catch(() => {
+                document.getElementById('offersContainer').innerText = 'Ошибка загрузки предложений.';
+            });
+    }
+    loadOffers();
+</script>
 </body>
 </html>
