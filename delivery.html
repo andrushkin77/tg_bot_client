@@ -71,7 +71,7 @@
 
   // Если заказ уже создан, подгружаем данные из сервера
   if (orderId) {
-    fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://m0rwro-79-127-211-217.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -99,7 +99,7 @@
       Telegram.WebApp.close(); // Закрываем окно мини-приложения
     } else {
       // Обновляем данные в БД через API
-      fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/update_order`, {
+      fetch(`https://m0rwro-79-127-211-217.ru.tuna.am/api/update_order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id: orderId, ...deliveryData })
