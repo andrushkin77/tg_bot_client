@@ -13,24 +13,17 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <h2>Ваш заказ</h2>
-
     <img id="orderImage" style="width: 100%; border-radius: 10px;" alt="Фото заказа">
-
     <div class="link" onclick="openDeliveryPage()">📦 Информация о доставке</div>
-
     <label>Ваши пожелания:</label>
     <textarea id="wishes" placeholder="Например, добавить красные шары..."></textarea>
-
     <button onclick="submitOrder()">Разместить заказ</button>
 </div>
-
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
-
     let imageUrl = new URLSearchParams(window.location.search).get('image_url');
     if (imageUrl) {
         localStorage.setItem('image_url', imageUrl);
@@ -44,7 +37,6 @@
         if (orderId) {
              window.location.href = "delivery.html?order_id=" + orderId;
         } else {
-             // Если заказа ещё нет, переходим на страницу доставки без order_id
              window.location.href = "delivery.html";
         }
     }
@@ -64,6 +56,5 @@
         Telegram.WebApp.close();
     }
 </script>
-
 </body>
 </html>
