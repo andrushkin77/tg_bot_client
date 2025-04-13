@@ -58,7 +58,7 @@
 </div>
 <script>
   const urlParams = new URLSearchParams(window.location.search);
-  const orderId = urlParams.get('order_id'); // может быть отсутствующим, если заказ ещё не создан
+  const orderId = urlParams.get('order_id'); // если заказ уже создан, в URL передается order_id
   const partnerId = urlParams.get('partner_id');
 
   document.getElementById('backBtn').addEventListener('click', () => {
@@ -69,9 +69,9 @@
     }
   });
 
-  // Если заказ уже создан, можно загрузить данные
+  // Если заказ уже создан, подгружаем данные из сервера
   if (orderId) {
-    fetch(`https://cbw7lj-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -93,12 +93,13 @@
       recipient_phone: document.getElementById('recipient_phone').value
     };
     if (!orderId) {
-      // Если заказ ещё не создан – сохраняем данные локально
+      // Заказ ещё не создан – сохраняем данные локально
       localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
       alert("Данные о доставке сохранены");
+      Telegram.WebApp.close(); // Закрываем окно мини-приложения
     } else {
-      // Если order_id есть, обновляем данные в БД через API
-      fetch(`https://cbw7lj-169-150-209-165.ru.tuna.am/api/update_order`, {
+      // Обновляем данные в БД через API
+      fetch(`https://mqnl9l-2a02-6ea0-c71c-8--3.ru.tuna.am/api/update_order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id: orderId, ...deliveryData })
@@ -106,6 +107,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
+          alert("Данные о доставке обновлены");
           window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
         } else {
           alert("Ошибка при сохранении: " + data.message);
