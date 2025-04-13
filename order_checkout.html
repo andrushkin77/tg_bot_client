@@ -80,7 +80,7 @@
       console.error("order_id не указан!");
       return;
     }
-    fetch(`https://m0rwro-79-127-211-217.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://e5gxi6-79-127-211-217.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status !== "success") {
@@ -102,7 +102,7 @@
       console.log("Не хватает orderId или partnerId");
       return;
     }
-    fetch(`https://m0rwro-79-127-211-217.ru.tuna.am/api/offers?order_id=${orderId}`)
+    fetch(`https://e5gxi6-79-127-211-217.ru.tuna.am/api/offers?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.offers) {
@@ -134,7 +134,7 @@
       alert("Партнёр не выбран");
       return;
     }
-    window.location.href = `partner_details.html?partner_id=${partnerId}&order_id=${orderId}&confirm=1`;
+    window.location.href = `order_detail_partner.html?partner_id=${partnerId}&order_id=${orderId}&confirm=1`;
   });
 
   function openPaymentPage() {
