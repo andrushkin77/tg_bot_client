@@ -208,9 +208,9 @@
   }
 
   function acceptOffer() {
-    // Здесь можно добавить API запрос для подтверждения предложения
+    // При нажатии «Принять предложение» переходим в корзину и передаём partner_id
     alert("Предложение принято!");
-    window.location.href = `order_checkout.html?order_id=${orderId}`;
+    window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
   }
 
   loadPartnerDetails();
