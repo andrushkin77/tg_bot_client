@@ -20,24 +20,43 @@
       border-radius: 10px;
       position: relative;
     }
-    h2 { margin-bottom: 15px; font-size: 20px; }
-    label { margin-top: 10px; display: block; }
-    input, button {
-      width: 100%; padding: 10px; margin-top: 10px; border: none; border-radius: 5px;
+    h2 {
+      margin-bottom: 15px; 
+      font-size: 20px;
+      text-align: center;
     }
-    input { background: #292929; color: white; }
-    button { background: #32CD32; color: white; font-weight: bold; margin-top: 20px; }
+    label {
+      margin-top: 10px;
+      display: block;
+    }
+    input, button {
+      width: 100%; 
+      padding: 10px; 
+      margin-top: 10px; 
+      border: none; 
+      border-radius: 5px;
+    }
+    input {
+      background: #292929; 
+      color: white;
+    }
+    button {
+      background: #32CD32; 
+      color: white; 
+      font-weight: bold; 
+      margin-top: 20px;
+    }
     .back-button {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
+      position: fixed; 
+      top: 10px; 
+      left: 10px; 
+      z-index: 1000; 
       background: none;
-      color: #32CD32;
-      border: none;
-      font-size: 16px;
-      text-decoration: underline;
-      cursor: pointer;
+      color: #32CD32; 
+      border: none; 
+      font-size: 16px; 
+      text-decoration: underline; 
+      cursor: pointer; 
       padding: 0;
     }
   </style>
@@ -61,6 +80,15 @@
   const orderId = urlParams.get('order_id'); 
   const partnerId = urlParams.get('partner_id');
 
+  const localData = localStorage.getItem('deliveryData');
+  if (localData) {
+    const parsed = JSON.parse(localData);
+    document.getElementById('city').value = parsed.city || '';
+    document.getElementById('address').value = parsed.address || '';
+    document.getElementById('recipient_name').value = parsed.recipient_name || '';
+    document.getElementById('recipient_phone').value = parsed.recipient_phone || '';
+  }
+
   document.getElementById('backBtn').addEventListener('click', () => {
     if (orderId && partnerId) {
       window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
@@ -69,17 +97,20 @@
     }
   });
 
-  // Если заказ уже создан, загружаем данные
   if (orderId) {
     fetch(`https://ygqury-95-164-118-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
           const order = data.order;
-          document.getElementById('city').value = order.city || '';
-          document.getElementById('address').value = order.delivery_address || '';
-          document.getElementById('recipient_name').value = order.recipient_name || '';
-          document.getElementById('recipient_phone').value = order.recipient_phone || '';
+          // Если в localStorage нет данных, подгружаем из заказа
+          const localDataAgain = localStorage.getItem('deliveryData');
+          if (!localDataAgain) {
+            document.getElementById('city').value = order.city || '';
+            document.getElementById('address').value = order.delivery_address || '';
+            document.getElementById('recipient_name').value = order.recipient_name || '';
+            document.getElementById('recipient_phone').value = order.recipient_phone || '';
+          }
         }
       })
       .catch(err => console.error("Ошибка загрузки доставки:", err));
@@ -92,13 +123,12 @@
       recipient_name: document.getElementById('recipient_name').value,
       recipient_phone: document.getElementById('recipient_phone').value
     };
-    if (!orderId) {
-      // Если заказ ещё не создан – сохраняем данные локально
-      localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
-      alert("Данные о доставке сохранены");
-      // Не закрываем окно, чтобы клиент смог далее разместить заказ
-    } else {
-      // Если заказ создан – отправляем обновление на сервер
+    // Сохраняем в localStorage
+    localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
+
+    alert("Данные о доставке сохранены");
+
+    if (orderId) {
       fetch(`https://ygqury-95-164-118-165.ru.tuna.am/api/update_order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,8 +137,9 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
-          alert("Данные о доставке обновлены");
-          window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
+          alert("Данные о доставке также обновлены на сервере");
+          // Остаёмся на странице, либо возвращаемся на "Ваш заказ"
+          // window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
         } else {
           alert("Ошибка при сохранении: " + data.message);
         }
