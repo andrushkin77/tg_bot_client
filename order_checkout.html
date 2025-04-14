@@ -88,7 +88,6 @@
           return;
         }
         const order = data.order;
-        // Заполняем поля
         document.getElementById('orderNumber').innerText = `Order #${order.id}`;
         document.getElementById('compositionName').innerText = `Композиция: "${order.description || '...'}"`;
         document.getElementById('deliveryAddressDisplay').innerText = order.delivery_address || 'Не указан';
@@ -99,11 +98,8 @@
   }
 
   function loadPartnerOffer() {
-    // Если partnerId не задан, оставляем поля пустыми
     if (!orderId || !partnerId) {
-      document.getElementById('compositionPrice').innerText = '0';
-      document.getElementById('totalPrice').innerText = '0';
-      document.getElementById('executorName').innerText = '—';
+      console.log("Не хватает orderId или partnerId");
       return;
     }
     fetch(`https://ygqury-95-164-118-165.ru.tuna.am/api/offers?order_id=${orderId}`)
@@ -113,7 +109,6 @@
           console.error("Нет offers:", data);
           return;
         }
-        // Ищем отклик по partnerId
         const offer = data.offers.find(o => String(o.partner_id) === partnerId);
         if (!offer) {
           console.error("Не найден отклик партнёра", partnerId);
@@ -121,7 +116,7 @@
         }
         document.getElementById('executorName').innerText = offer.partner_name;
         document.getElementById('compositionPrice').innerText = offer.price;
-        const total = Number(offer.price) + 0; // доставка=0
+        const total = Number(offer.price) + 0; // доставка = 0
         document.getElementById('totalPrice').innerText = total;
       })
       .catch(err => console.error("Ошибка fetch offers:", err));
@@ -132,7 +127,7 @@
   document.getElementById('payBtn').addEventListener('click', () => {
     const totalPrice = document.getElementById('totalPrice').innerText;
     alert(`Оплата заказа #${orderId} на сумму ${totalPrice} руб.`);
-    // Здесь можно сделать fetch на /api/pay_order
+    // Здесь можно вызвать API для оплаты
   });
 
   document.getElementById('showPartnerDetailsBtn').addEventListener('click', () => {
