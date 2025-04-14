@@ -98,7 +98,7 @@
   });
 
   if (orderId) {
-    fetch(`https://ygqury-95-164-118-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://y65bpc-5-181-23-203.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -129,7 +129,7 @@
     alert("Данные о доставке сохранены");
 
     if (orderId) {
-      fetch(`https://ygqury-95-164-118-165.ru.tuna.am/api/update_order`, {
+      fetch(`https://y65bpc-5-181-23-203.ru.tuna.am/api/update_order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id: orderId, ...deliveryData })
