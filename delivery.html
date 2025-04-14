@@ -71,7 +71,7 @@
 
   // Если заказ уже создан, загружаем данные
   if (orderId) {
-    fetch(`https://2h7jjy-95-164-118-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://apwvru-2a11-3801-0-a--1.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -99,7 +99,7 @@
       // Не закрываем окно, чтобы клиент смог далее разместить заказ
     } else {
       // Если заказ создан – отправляем обновление на сервер
-      fetch(`https://2h7jjy-95-164-118-165.ru.tuna.am/api/update_order`, {
+      fetch(`https://apwvru-2a11-3801-0-a--1.ru.tuna.am/api/update_order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id: orderId, ...deliveryData })
