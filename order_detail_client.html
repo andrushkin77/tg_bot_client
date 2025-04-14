@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Детали заказа</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      background-color: #161616;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .partner-info {
+      margin-bottom: 20px;
+    }
+    .partner-info h3 {
+      margin-bottom: 5px;
+    }
+    .partner-description {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .gallery img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    .social-links a {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 5px 10px;
+      border: 1px solid #32CD32;
+      border-radius: 5px;
+      text-decoration: none;
+      color: #32CD32;
+      font-size: 14px;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid #555;
+      margin: 20px 0;
+    }
+    .offer-details {
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .offer-details p {
+      margin-bottom: 5px;
+    }
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+    .buttons button {
+      flex-basis: 48%;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-back {
+      background: #555;
+      color: #fff;
+    }
+    .btn-accept {
+      background: #32CD32;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Детали заказа</h2>
+  <div class="partner-info">
+    <h3 id="partnerName">Название компании</h3>
+    <p class="partner-description" id="partnerDescription">Короткое описание компании...</p>
+  </div>
+  <div class="gallery" id="gallery">
+    <!-- Фотографии партнёра -->
+  </div>
+  <div class="social-links" id="socialLinks">
+    <!-- Ссылки на соцсети и карты -->
+  </div>
+  <hr>
+  <div class="offer-details">
+    <p><strong>Цена исполнения:</strong> <span id="offerPrice">...</span> руб.</p>
+    <p><strong>Комментарий от исполнителя:</strong> <span id="offerComment">...</span></p>
+  </div>
+  <div class="buttons">
+    <button class="btn-back" onclick="goBack()">Вернуться назад</button>
+    <button class="btn-accept" onclick="acceptOffer()">Принять предложение</button>
+  </div>
+</div>
+<script>
+  let tg = window.Telegram.WebApp;
+  tg.expand();
+  const urlParams = new URLSearchParams(window.location.search);
+  const partnerId = urlParams.get('partner_id');
+  const offerId = urlParams.get('offer_id');
+  const orderId = urlParams.get('order_id');
+  
+  // Загрузить данные партнёра
+  function loadPartnerDetails() {
+    fetch(`https://m0rwro-79-127-211-217.ru.tuna.am/api/partners/${partnerId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status !== "success") {
+          alert("Ошибка загрузки данных партнёра: " + data.message);
+          return;
+        }
+        const partner = data.partner;
+        document.getElementById('partnerName').innerText = partner.name || "Не указано";
+        document.getElementById('partnerDescription').innerText = partner.description || "Нет описания";
+        // Фотогалерея
+        const galleryDiv = document.getElementById('gallery');
+        galleryDiv.innerHTML = "";
+        let photos = [];
+        try {
+          photos = typeof partner.photos === 'string' ? JSON.parse(partner.photos) : partner.photos;
+        } catch (e) {
+          photos = [];
+        }
+        if (photos.length > 0) {
+          photos.forEach(url => {
+            const img = document.createElement("img");
+            img.src = url;
+            galleryDiv.appendChild(img);
+          });
+        } else {
+          galleryDiv.innerHTML = "<p>Нет фотографий</p>";
+        }
+        // Социальные ссылки
+        const socialDiv = document.getElementById('socialLinks');
+        socialDiv.innerHTML = "";
+        if (partner.map_link) {
+          const aYandex = document.createElement("a");
+          aYandex.href = partner.map_link;
+          aYandex.target = "_blank";
+          aYandex.innerText = "Яндекс карты";
+          socialDiv.appendChild(aYandex);
+          const a2gis = document.createElement("a");
+          a2gis.href = partner.map_link;
+          a2gis.target = "_blank";
+          a2gis.innerText = "2ГИС";
+          socialDiv.appendChild(a2gis);
+        }
+        if (partner.vk_link) {
+          const aVK = document.createElement("a");
+          aVK.href = partner.vk_link;
+          aVK.target = "_blank";
+          aVK.innerText = "VK";
+          socialDiv.appendChild(aVK);
+        }
+        if (partner.tg_link) {
+          const aTG = document.createElement("a");
+          aTG.href = partner.tg_link;
+          aTG.target = "_blank";
+          aTG.innerText = "Telegram";
+          socialDiv.appendChild(aTG);
+        }
+      })
+      .catch(() => alert("Ошибка при загрузке данных партнёра."));
+  }
+
+  // Загрузить данные отклика (предложения)
+  function loadOfferDetails() {
+    fetch(`https://m0rwro-79-127-211-217.ru.tuna.am/api/offers?order_id=${orderId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.offers || data.offers.length === 0) {
+          alert("Нет предложений для данного заказа.");
+          return;
+        }
+        // Найти отклик по offerId
+        const offer = data.offers.find(o => String(o.id) === offerId);
+        if (!offer) {
+          alert("Отклик не найден.");
+          return;
+        }
+        document.getElementById('offerPrice').innerText = offer.price || "0";
+        document.getElementById('offerComment').innerText = offer.comment || "Нет комментария";
+      })
+      .catch(() => alert("Ошибка при загрузке данных отклика."));
+  }
+
+  function goBack() {
+    window.location.href = `offers.html?order_id=${orderId}`;
+  }
+
+  function acceptOffer() {
+    // Здесь можно добавить API запрос для подтверждения предложения
+    alert("Предложение принято!");
+    window.location.href = `order_checkout.html?order_id=${orderId}`;
+  }
+
+  loadPartnerDetails();
+  loadOfferDetails();
+</script>
+</body>
+</html>
