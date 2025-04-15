@@ -30,7 +30,7 @@
         window.location.href = `order_detail_client.html?partner_id=${partnerId}&offer_id=${offerId}&order_id=${orderId}`;
     }
     function loadOffers() {
-        fetch(`https://spxvcg-82-204-189-161.ru.tuna.am/api/offers?order_id=${orderId}`)
+        fetch(`https://vw63et-82-204-189-161.ru.tuna.am/api/offers?order_id=${orderId}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('offersContainer');
