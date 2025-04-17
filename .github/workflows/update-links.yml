@@ -1,0 +1,43 @@
+name: Update Links
+
+on:
+  workflow_dispatch:
+    inputs:
+      old_url:
+        description: 'Старая ссылка для замены'
+        required: true
+        default: 'https://5cdndq-79-127-211-217.ru.tuna.am'
+      new_url:
+        description: 'Новая ссылка для замены'
+        required: true
+
+jobs:
+  replace-urls:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Замена ссылок во всех файлах
+        run: |
+          OLD_URL="${{ github.event.inputs.old_url }}"
+          NEW_URL="${{ github.event.inputs.new_url }}"
+          echo "Заменяем ${OLD_URL} на ${NEW_URL}"
+          grep -rl "${OLD_URL}" . | while read file; do
+            echo "Обработка файла: $file"
+            sed -i "s|${OLD_URL}|${NEW_URL}|g" "$file"
+          done
+
+      - name: Коммит и push изменений
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Replace ${OLD_URL} with ${NEW_URL}"
+            git push
+          else
+            echo "Изменений не обнаружено."
+          fi
