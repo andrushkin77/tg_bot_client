@@ -80,7 +80,7 @@
       console.error("order_id не указан!");
       return;
     }
-    fetch(`https://nhjpi0-79-127-211-217.ru.tuna.am /api/order_details?order_id=${orderId}`)
+    fetch(`https://d6444j-2a00-1370-81ae-1b65-4403-8aca-1009-5897.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status !== "success") {
@@ -102,7 +102,7 @@
       console.log("Не хватает orderId или partnerId");
       return;
     }
-    fetch(`https://nhjpi0-79-127-211-217.ru.tuna.am /api/offers?order_id=${orderId}`)
+    fetch(`https://d6444j-2a00-1370-81ae-1b65-4403-8aca-1009-5897.ru.tuna.am/api/offers?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.offers) {

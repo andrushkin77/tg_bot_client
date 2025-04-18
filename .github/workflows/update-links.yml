@@ -6,7 +6,7 @@ on:
       old_url:
         description: 'Старая ссылка для замены'
         required: true
-        default: 'https://nhjpi0-79-127-211-217.ru.tuna.am '
+        default: 'https://d6444j-2a00-1370-81ae-1b65-4403-8aca-1009-5897.ru.tuna.am'
       new_url:
         description: 'Новая ссылка для замены'
         required: true
