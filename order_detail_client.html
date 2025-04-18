@@ -121,7 +121,7 @@
   
   // Загрузить данные партнёра
   function loadPartnerDetails() {
-    fetch(`https://d6444j-2a00-1370-81ae-1b65-4403-8aca-1009-5897.ru.tuna.am/api/partners/${partnerId}`)
+    fetch(`https://866m82-169-150-209-165.ru.tuna.am/api/partners/${partnerId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status !== "success") {
@@ -184,7 +184,7 @@
 
   // Загрузить данные отклика (предложения)
   function loadOfferDetails() {
-    fetch(`https://d6444j-2a00-1370-81ae-1b65-4403-8aca-1009-5897.ru.tuna.am/api/offers?order_id=${orderId}`)
+    fetch(`https://866m82-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.offers || data.offers.length === 0) {
