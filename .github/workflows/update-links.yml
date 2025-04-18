@@ -6,7 +6,7 @@ on:
       old_url:
         description: 'Старая ссылка для замены'
         required: true
-        default: 'https://866m82-169-150-209-165.ru.tuna.am'
+        default: 'https://xxxm53-169-150-209-165.ru.tuna.am'
       new_url:
         description: 'Новая ссылка для замены'
         required: true

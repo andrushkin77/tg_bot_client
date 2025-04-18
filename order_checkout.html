@@ -80,7 +80,7 @@
       console.error("order_id не указан!");
       return;
     }
-    fetch(`https://866m82-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://xxxm53-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status !== "success") {
@@ -102,7 +102,7 @@
       console.log("Не хватает orderId или partnerId");
       return;
     }
-    fetch(`https://866m82-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
+    fetch(`https://xxxm53-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.offers) {
