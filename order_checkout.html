@@ -130,13 +130,15 @@
     // Здесь можно вызвать API для оплаты
   });
 
-  document.getElementById('showPartnerDetailsBtn').addEventListener('click', () => {
+  document.getElementById('showPartnerDetailsBtn').onclick = () => {
     if (!partnerId) {
-      alert("Партнёр не выбран");
+      alert('Партнёр не выбран');
       return;
     }
-    window.location.href = `executor_profile.html.html?partner_id=${partnerId}`;
-  });
+    /* переходим на executor_profile.html и
+       передаём оба параметра — partner_id и order_id */
+    location.href = `executor_profile.html?partner_id=${partnerId}&order_id=${orderId}`;
+  };
 
   function openPaymentPage() {
     alert("Выбор способа оплаты (пока не реализован)");
