@@ -121,7 +121,7 @@
   
   // Загрузить данные партнёра
   function loadPartnerDetails() {
-    fetch(`https://mhylzo-82-204-189-161.ru.tuna.am/api/partners/${partnerId}`)
+    fetch(`https://prg07m-169-150-209-165.ru.tuna.am/api/partners/${partnerId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status !== "success") {
@@ -184,7 +184,7 @@
 
   // Загрузить данные отклика (предложения)
   function loadOfferDetails() {
-    fetch(`https://mhylzo-82-204-189-161.ru.tuna.am/api/offers?order_id=${orderId}`)
+    fetch(`https://prg07m-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.offers || data.offers.length === 0) {
