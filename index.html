@@ -1,60 +1,72 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>Оформление заказа</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { background-color: #161616; color: white; font-family: Arial, sans-serif; padding: 20px; }
-        .container { background: #1e1e1e; padding: 20px; border-radius: 10px; }
-        textarea, button, a { width: 100%; padding: 10px; margin-top: 10px; border: none; border-radius: 5px; }
-        textarea { background: #292929; color: white; }
-        button { background: #32CD32; color: white; font-weight: bold; }
-        .link { color: #32CD32; cursor: pointer; text-decoration: underline; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Оформление заказа</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body  { background:#161616; color:#fff; font-family:Arial,sans-serif; padding:20px }
+    .container { background:#1e1e1e; padding:20px; border-radius:10px }
+    textarea, button { width:100%; padding:10px; margin-top:10px; border:none; border-radius:5px }
+    textarea { background:#292929; color:#fff }
+    /* основная зелёная кнопка */
+    .primary-btn { background:#32CD32; color:#fff; font-weight:bold }
+    /* полупрозрачная «Информация о доставке»  */
+    .ghost-btn   {
+      background:rgba(255,255,255,0.08);        /* лёгкая прозрачность */
+      color:#fff;
+      backdrop-filter:blur(4px);
+      border:1px solid rgba(255,255,255,0.15);  /* тонкая рамка как в корзине */
+      display:flex; align-items:center; gap:8px; justify-content:center;
+    }
+    .ghost-btn:hover { background:rgba(255,255,255,0.15) }
+  </style>
 </head>
 <body>
 <div class="container">
-    <h2>Ваш заказ</h2>
-    <img id="orderImage" style="width: 100%; border-radius: 10px;" alt="Фото заказа">
-    <div class="link" onclick="openDeliveryPage()">📦 Информация о доставке</div>
-    <label>Ваши пожелания:</label>
-    <textarea id="wishes" placeholder="Например, добавить красные шары..."></textarea>
-    <button onclick="submitOrder()">Разместить заказ</button>
+  <h2>Ваш заказ</h2>
+
+  <img id="orderImage" style="width:100%;border-radius:10px" alt="Фото заказа">
+
+  <!-- 1. ваши пожелания -->
+  <label style="margin-top:15px">Ваши пожелания:</label>
+  <textarea id="wishes" placeholder="Например, добавить красные шары..."></textarea>
+
+  <!-- 2. информация о доставке  -->
+  <button class="ghost-btn" style="margin-top:10px" onclick="openDeliveryPage()">
+    📦 Информация о доставке
+  </button>
+
+  <!-- 3. разместить заказ -->
+  <button class="primary-btn" style="margin-top:15px" onclick="submitOrder()">
+    Разместить заказ
+  </button>
 </div>
+
 <script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
-    let imageUrl = new URLSearchParams(window.location.search).get('image_url');
-    if (imageUrl) {
-        localStorage.setItem('image_url', imageUrl);
-    } else {
-        imageUrl = localStorage.getItem('image_url');
-    }
-    document.getElementById('orderImage').src = imageUrl;
+  const tg = Telegram.WebApp; tg.expand();
 
-    function openDeliveryPage() {
-        let orderId = localStorage.getItem('order_id');
-        if (orderId) {
-             window.location.href = "delivery.html?order_id=" + orderId;
-        } else {
-             window.location.href = "delivery.html";
-        }
-    }
+  /* восстановление изображения */
+  let imageUrl = new URLSearchParams(location.search).get('image_url');
+  if (imageUrl) localStorage.setItem('image_url', imageUrl);
+  else          imageUrl = localStorage.getItem('image_url');
+  orderImage.src = imageUrl;
 
-    function submitOrder() {
-        const deliveryData = JSON.parse(localStorage.getItem('deliveryData')) || {};
-        const orderData = {
-            action: "submit_order",
-            image_url: imageUrl,
-            wishes: document.getElementById('wishes').value,
-            city: deliveryData.city,
-            deliveryAddress: deliveryData.address,
-            recipient_name: deliveryData.recipient_name,
-            recipient_phone: deliveryData.recipient_phone
-        };
-        Telegram.WebApp.sendData(JSON.stringify(orderData));
-        Telegram.WebApp.close();
-    }
+  function openDeliveryPage(){
+    const id = localStorage.getItem('order_id');
+    location.href = id ? `delivery.html?order_id=${id}` : 'delivery.html';
+  }
+
+  function submitOrder(){
+    const d = JSON.parse(localStorage.getItem('deliveryData')||'{}');
+    const payload = {
+      action:'submit_order', image_url:imageUrl,
+      wishes:wishes.value,
+      city:d.city, deliveryAddress:d.address,
+      recipient_name:d.recipient_name, recipient_phone:d.recipient_phone
+    };
+    tg.sendData(JSON.stringify(payload)); tg.close();
+  }
 </script>
 </body>
 </html>
