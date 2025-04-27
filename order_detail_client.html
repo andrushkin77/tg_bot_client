@@ -121,7 +121,7 @@
   
   // Загрузить данные партнёра
   function loadPartnerDetails() {
-    fetch(`https://kwk2ke-169-150-209-165.ru.tuna.am/api/partners/${partnerId}`)
+    fetch(`https://ryr70d-169-150-209-165.ru.tuna.am/api/partners/${partnerId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status !== "success") {
@@ -184,7 +184,7 @@
 
   // Загрузить данные отклика (предложения)
   function loadOfferDetails() {
-    fetch(`https://kwk2ke-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
+    fetch(`https://ryr70d-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.offers || data.offers.length === 0) {
