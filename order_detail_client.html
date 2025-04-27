@@ -121,7 +121,7 @@
   
   // Загрузить данные партнёра
   function loadPartnerDetails() {
-    fetch(`https://3n633a-2a00-1370-81ae-1b65-bc1e-f4a9-558b-8d8.ru.tuna.am/api/partners/${partnerId}`)
+    fetch(`https://exofqk-95-164-118-165.ru.tuna.am/api/partners/${partnerId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status !== "success") {
@@ -184,7 +184,7 @@
 
   // Загрузить данные отклика (предложения)
   function loadOfferDetails() {
-    fetch(`https://3n633a-2a00-1370-81ae-1b65-bc1e-f4a9-558b-8d8.ru.tuna.am/api/offers?order_id=${orderId}`)
+    fetch(`https://exofqk-95-164-118-165.ru.tuna.am/api/offers?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (!data.offers || data.offers.length === 0) {
