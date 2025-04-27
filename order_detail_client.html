@@ -14,11 +14,12 @@
 
     /* ----------  К А Р У С Е Л Ь  ---------- */
     .carousel-wrapper{position:relative;margin-bottom:20px}
-    .carousel{display:flex;overflow:hidden;width:100%}
-    .carousel img{flex:0 0 100%;height:220px;object-fit:cover;border-radius:10px}
-    .nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);
-         border:none;color:#fff;font-size:28px;width:36px;height:36px;border-radius:50%;
-         display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .carousel{display:flex;overflow:hidden;transition:transform .3s ease}
+    .carousel img{height:220px;object-fit:cover;border-radius:10px}
+    .nav{position:absolute;top:50%;transform:translateY(-50%);
+         background:rgba(0,0,0,.4);border:none;color:#fff;font-size:28px;
+         width:36px;height:36px;border-radius:50%;display:flex;
+         align-items:center;justify-content:center;cursor:pointer}
     .nav.prev{left:10px}.nav.next{right:10px}
     .nav:disabled{opacity:.3;cursor:default}
     .dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
@@ -77,7 +78,7 @@
   const orderId   = qs.get('order_id');
   const apiBase   = 'https://ryr70d-169-150-209-165.ru.tuna.am/api';
 
-  /* ---------- переменные и ссылки на DOM ---------- */
+  /* ---------- переменные и ссылки ---------- */
   let photos=[], cur=0;
   const carousel = document.getElementById('carousel');
   const dotsBox  = document.getElementById('dots');
@@ -86,38 +87,45 @@
   const prevBtn  = document.getElementById('prevBtn');
   const nextBtn  = document.getElementById('nextBtn');
 
-  /* ---------- функции карусели ---------- */
+  /* ---------- карусель ---------- */
   function renderCarousel(){
-    carousel.innerHTML = ''; dotsBox.innerHTML = '';
+    carousel.innerHTML=''; dotsBox.innerHTML='';
     photos.forEach((url,i)=>{
-      const img = document.createElement('img'); img.src=url; carousel.appendChild(img);
-      const dot = document.createElement('div'); dot.className='dot'; dot.onclick=()=>go(i);
+      const img=document.createElement('img'); img.src=url; carousel.appendChild(img);
+      const dot=document.createElement('div'); dot.className='dot'; dot.onclick=()=>go(i);
       dotsBox.appendChild(dot);
     });
-    if(photos.length){
-      wrap.style.display=''; noPhotos.style.display='none'; go(0);
-    }else{
-      wrap.style.display='none'; noPhotos.style.display='';
-    }
+
+    if(!photos.length){ wrap.style.display='none'; noPhotos.style.display=''; return;}
+    wrap.style.display=''; noPhotos.style.display='none';
+
+    /* ширина ленты и кадров */
+    carousel.style.width = `${photos.length*100}%`;
+    [...carousel.children].forEach(img=>{
+      img.style.flex = `0 0 ${100/photos.length}%`;
+    });
+
+    go(0);
   }
+
   function go(i){
     cur=i;
-    carousel.style.transform=`translateX(-${i*100}%)`;
+    const step = 100/photos.length;
+    carousel.style.transform = `translateX(-${i*step}%)`;
     [...dotsBox.children].forEach((d,idx)=>d.classList.toggle('active',idx===i));
-    prevBtn.disabled = (i===0);
-    nextBtn.disabled = (i===photos.length-1);
+    prevBtn.disabled = i===0;
+    nextBtn.disabled = i===photos.length-1;
   }
   prevBtn.onclick = ()=>go(cur-1);
   nextBtn.onclick = ()=>go(cur+1);
 
-  /* ---------- загрузка партнёра ---------- */
+  /* ---------- данные партнёра ---------- */
   fetch(`${apiBase}/partners/${partnerId}`)
     .then(r=>r.json()).then(d=>{
       if(d.status!=='success'){alert(d.message);return;}
       const p=d.partner;
       partnerName.textContent        = p.name||'—';
       partnerDescription.textContent = p.description||'';
-      /* ссылки */
       ['map_link','vk_link','tg_link'].forEach(k=>{
         if(p[k]){
           const a=document.createElement('a'); a.href=p[k]; a.target='_blank';
@@ -125,13 +133,12 @@
           socialLinks.appendChild(a);
         }
       });
-      /* фото */
       try{ photos = Array.isArray(p.photos)?p.photos:JSON.parse(p.photos||'[]'); }catch{}
       renderCarousel();
     })
     .catch(()=>alert('Ошибка при загрузке данных партнёра.'));
 
-  /* ---------- загрузка отклика ---------- */
+  /* ---------- данные отклика ---------- */
   fetch(`${apiBase}/offers?order_id=${orderId}`)
     .then(r=>r.json()).then(d=>{
       const offer = d.offers?.find(o=>String(o.id)===offerId);
