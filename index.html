@@ -6,53 +6,75 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body  { background:#161616; color:#fff; font-family:Arial,sans-serif; padding:20px }
-    .container { background:#1e1e1e; padding:20px; border-radius:10px }
+    .container { 
+      background:#1e1e1e; padding:20px; border-radius:10px; 
+      position:relative; /* для позиционирования кнопки */
+    }
     textarea, button { width:100%; padding:10px; margin-top:10px; border:none; border-radius:5px }
     textarea { background:#292929; color:#fff }
     /* основная зелёная кнопка */
     .primary-btn { background:#32CD32; color:#fff; font-weight:bold }
     /* полупрозрачная «Информация о доставке»  */
     .ghost-btn   {
-      background:rgba(255,255,255,0.08);        /* лёгкая прозрачность */
+      background:rgba(255,255,255,0.08); /* лёгкая прозрачность */
       color:#fff;
       backdrop-filter:blur(4px);
-      border:1px solid rgba(255,255,255,0.15);  /* тонкая рамка как в корзине */
+      border:1px solid rgba(255,255,255,0.15); /* тонкая рамка */
       display:flex; align-items:center; gap:8px; justify-content:center;
     }
     .ghost-btn:hover { background:rgba(255,255,255,0.15) }
+    /* ✏️ кнопка изменения фото внутри контейнера */
+    .edit-btn {
+      position:absolute; top:20px; right:20px;
+      background:none; border:none; color:#32CD32;
+      font-size:24px; cursor:pointer; line-height:1;
+    }
   </style>
 </head>
 <body>
 <div class="container">
+  <!-- Кнопка ✏️ изменить фото, на одном уровне с заголовком -->
+  <button id="editImageBtn" title="Поменять фото" class="edit-btn">✏️</button>
   <h2>Ваш заказ</h2>
 
   <img id="orderImage" style="width:100%;border-radius:10px" alt="Фото заказа">
 
   <!-- 1. ваши пожелания -->
-  <label style="margin-top:15px">Ваши пожелания:</label>
+  <label style="margin-top:15px">Ваши пожелания:</label>
   <textarea id="wishes" placeholder="Например, добавить красные шары..."></textarea>
 
   <!-- 2. информация о доставке  -->
   <button class="ghost-btn" style="margin-top:10px" onclick="openDeliveryPage()">
-    📦 Информация о доставке
+    📦 Информация о доставке
   </button>
 
   <!-- 3. разместить заказ -->
   <button class="primary-btn" style="margin-top:15px" onclick="submitOrder()">
-    Разместить заказ
+    Разместить заказ
   </button>
 </div>
 
 <script>
-  const tg = Telegram.WebApp; tg.expand();
+  const tg = (window.Telegram && Telegram.WebApp) ? Telegram.WebApp : null;
+  if(tg) tg.expand();
 
-  /* восстановление изображения */
+  /* ----------------------------- фото ----------------------------- */
   let imageUrl = new URLSearchParams(location.search).get('image_url');
   if (imageUrl) localStorage.setItem('image_url', imageUrl);
   else          imageUrl = localStorage.getItem('image_url');
   orderImage.src = imageUrl;
 
+  /* -------------------------- пожелания --------------------------- */
+  const wishesEl = document.getElementById('wishes');
+  // восстановление
+  wishesEl.value = localStorage.getItem('wishes_text') || '';
+  wishesEl.addEventListener('input', () => {
+    localStorage.setItem('wishes_text', wishesEl.value);
+  });
+
+  /* ------------------------ страницы / действия ------------------- */
   function openDeliveryPage(){
+    localStorage.setItem('wishes_text', wishesEl.value);
     const id = localStorage.getItem('order_id');
     location.href = id ? `delivery.html?order_id=${id}` : 'delivery.html';
   }
@@ -61,12 +83,25 @@
     const d = JSON.parse(localStorage.getItem('deliveryData')||'{}');
     const payload = {
       action:'submit_order', image_url:imageUrl,
-      wishes:wishes.value,
-      city:d.city, deliveryAddress:d.address,
-      recipient_name:d.recipient_name, recipient_phone:d.recipient_phone
+      wishes:wishesEl.value, city:d.city,
+      deliveryAddress:d.address,
+      recipient_name:d.recipient_name,
+      recipient_phone:d.recipient_phone
     };
-    tg.sendData(JSON.stringify(payload)); tg.close();
+    if(tg){ tg.sendData(JSON.stringify(payload)); tg.close(); }
+    else { alert('Форма закрыта: '+JSON.stringify(payload)); }
   }
+
+  /* ----------------------- смена фотографии ----------------------- */
+  editImageBtn.onclick = () => {
+    if(!tg){ alert('Смена фото доступна из Telegram'); return; }
+    if(confirm('Хотите заменить фото композиции?')){
+      localStorage.removeItem('image_url');
+      localStorage.removeItem('wishes_text');
+      tg.sendData(JSON.stringify({action:'edit_image'}));
+      tg.close();
+    }
+  };
 </script>
 </body>
 </html>
