@@ -30,7 +30,7 @@
         window.location.href = `order_detail_client.html?partner_id=${partnerId}&offer_id=${offerId}&order_id=${orderId}`;
     }
     function loadOffers() {
-        fetch(`https://y7a700-169-150-209-165.ru.tuna.am/api/offers?order_id=${orderId}`)
+        fetch(`https://r9fosg-2a00-1370-81ae-1b65-2c66-b08c-f62e-9e92.ru.tuna.am/api/offers?order_id=${orderId}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('offersContainer');
