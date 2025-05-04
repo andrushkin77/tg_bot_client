@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Оплата завершена</title>
+  <style>
+    body{background:#161616;color:#fff;font-family:Arial;text-align:center;
+         padding:40px}
+    h2{margin-bottom:15px}
+    button{padding:10px 20px;border:none;border-radius:6px;font-size:16px;
+           background:#32CD32;color:#fff;cursor:pointer}
+  </style>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <h2>Спасибо! Оплата прошла успешно.</h2>
+  <p>Вы можете закрыть эту страницу и вернуться в бот.</p>
+  <button onclick="closeMe()">Закрыть</button>
+
+  <script>
+    function closeMe(){
+      if(window.Telegram && Telegram.WebApp){
+        Telegram.WebApp.close();     // закроет Web App внутри Telegram
+      }else{
+        window.close();              // обычный браузер
+      }
+    }
+  </script>
+</body>
+</html>
