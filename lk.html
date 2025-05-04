@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Личный кабинет</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+ body{background:#161616;color:#fff;font-family:Arial;padding:20px}
+ .btn{display:block;width:100%;padding:15px;margin:12px 0;border:0;
+      border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}
+ .orders{background:#32CD32;color:#fff}
+ .new   {background:#555}
+</style>
+</head>
+<body>
+<h2 style="text-align:center">Личный кабинет</h2>
+
+<button class="btn orders" onclick="location.href='my_orders.html'">
+  📄 Мои заказы
+</button>
+
+<button class="btn new" onclick="location.href='index.html'">
+  ➕ Сделать заказ
+</button>
+
+<script>Telegram.WebApp.expand();</script>
+</body>
+</html>
