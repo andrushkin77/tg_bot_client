@@ -5,67 +5,79 @@
   <title>Профиль исполнителя</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { background: #161616; color: #fff; font-family: Arial; padding: 20px; }
-    .container { max-width: 500px; margin: auto; background: #1e1e1e; padding: 20px; border-radius:10px; position:relative; }
-    h2 { text-align:center; margin-bottom:15px; }
-    h3 { font-weight:bold; margin-bottom:10px; }
-    .gallery img { width:100px; height:100px; object-fit:cover; margin:5px; border-radius:5px; }
-    .social-links a { display:inline-block; margin:5px; padding:5px 10px; border:1px solid #32CD32; border-radius:5px; color:#32CD32; text-decoration:none;}
-    #backBtn { width:100%; margin-top:20px; padding:10px; background:#555; color:#fff; border:none; border-radius:5px; cursor:pointer; }
-    #editBtn { position:absolute; top:10px; right:10px; font-size:20px; cursor:pointer; }
+    body{background:#161616;color:#fff;font-family:Arial;padding:20px}
+    .container{max-width:500px;margin:auto;background:#1e1e1e;padding:20px;
+               border-radius:10px;position:relative}
+    h2{text-align:center;margin-bottom:15px}
+    h3{font-weight:bold;margin-bottom:10px}
+    .gallery img{width:100px;height:100px;object-fit:cover;margin:5px;border-radius:5px}
+    .social-links a{display:inline-block;margin:5px;padding:5px 10px;
+                    border:1px solid #32CD32;border-radius:5px;
+                    color:#32CD32;text-decoration:none}
+    #backBtn{width:100%;margin-top:20px;padding:10px;background:#555;color:#fff;
+             border:none;border-radius:5px;cursor:pointer}
+    #editBtn{position:absolute;top:10px;right:10px;font-size:20px;cursor:pointer}
   </style>
 </head>
 <body>
   <div class="container">
-    <div id="editBtn" style="font-size:20px;cursor:pointer;">✏️</div>
+    <div id="editBtn">✏️</div>
     <h2>Профиль исполнителя</h2>
     <h3 id="companyName">…</h3>
     <p id="companyDesc">…</p>
     <div class="gallery" id="gallery">…</div>
     <div class="social-links" id="socialLinks">…</div>
-    <button id="backBtn">Вернуться в корзину</button>
+    <button id="backBtn">Вернуться в корзину</button>
   </div>
 
-  <script>
-    const ws = Telegram.WebApp;
-    ws.expand();
-    const p = new URLSearchParams(location.search),
-          partnerId = p.get('partner_id'),
-          orderId   = p.get('order_id'),
-          apiBase   = 'https://devibt-169-150-209-165.ru.tuna.am/api';
+<script>
+const tg        = Telegram.WebApp; tg.expand();
+const qs        = new URLSearchParams(location.search);
+const partnerId = qs.get('partner_id');
+const orderId   = qs.get('order_id');
+const apiBase   = 'https://devibt-169-150-209-165.ru.tuna.am/api';
 
-    // Загрузить профиль
-    fetch(`${apiBase}/partners/${partnerId}`)
-      .then(r=>r.json()).then(d=>{
-        const c = d.partner;
-        companyName.innerText = c.name || '';
-        companyDesc.innerText = c.description || '';
-        // галерея
-        let photos = [];
-        try { photos = JSON.parse(c.photos); } catch{}
-        gallery.innerHTML = photos.length
-          ? photos.map(u=>`<img src="${u}">`).join('')
-          : '<p>Нет фотографий</p>';
-        // ссылки
-        ['map_link','vk_link','tg_link'].forEach(k=>{
-          if(c[k]) {
-            const a = document.createElement('a');
-            a.href = c[k]; a.target = '_blank';
-            a.innerText = {map_link:'Яндекс Карта',vk_link:'VK',tg_link:'Telegram'}[k];
-            socialLinks.appendChild(a);
-          }
-        });
-      });
-
-    backBtn.onclick = ()=> {
-      location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
-    };
-
-    editBtn.onclick = ()=> {
-      if (confirm('Вы точно хотите выбрать другого исполнителя?')) {
-        location.href = `offers.html?order_id=${orderId}`;
+/* ---------- загрузка профиля ---------- */
+fetch(`${apiBase}/partners/${partnerId}`)
+  .then(r=>r.json()).then(d=>{
+    const c = d.partner || {};
+    companyName.textContent = c.name || '';
+    companyDesc.textContent = c.description || '';
+    /* галерея */
+    let photos=[]; try{ photos = JSON.parse(c.photos); }catch{}
+    gallery.innerHTML = photos.length
+      ? photos.map(u=>`<img src="${u}">`).join('')
+      : '<p>Нет фотографий</p>';
+    /* соц‑ссылки */
+    ['map_link','vk_link','tg_link'].forEach(k=>{
+      if(c[k]){
+        const a=document.createElement('a');
+        a.href=c[k]; a.target='_blank';
+        a.textContent={map_link:'Яндекс Карта',vk_link:'VK',tg_link:'Telegram'}[k];
+        socialLinks.appendChild(a);
       }
-    };
-  </script>
+    });
+  });
+
+/* ---------- кнопки ---------- */
+backBtn.onclick = ()=>
+  location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
+
+editBtn.onclick = ()=>{
+  if(!confirm('Вы точно хотите выбрать другого исполнителя?')) return;
+  /* возвращаем заказ в pending и убираем выбранного исполнителя */
+  fetch(`${apiBase}/reset_partner`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({order_id:orderId})
+  })
+  .then(r=>r.json())
+  .then(j=>{
+    if(j.status!=='success'){ alert(j.message||'Ошибка'); return; }
+    location.href = `offers.html?order_id=${orderId}`;      // обратно к списку
+  })
+  .catch(()=>alert('Сетевая ошибка. Попробуйте ещё раз.'));
+};
+</script>
 </body>
 </html>
