@@ -73,7 +73,7 @@ const orderId   = qs.get('order_id');
 const partnerId = qs.get('partner_id');
 
 /*   API‑домен, меняется только поддомен tuna */
-const apiBase = location.origin.replace(/\/$/,'') + '/api';
+const apiBase = 'https://devibt-169-150-209-165.ru.tuna.am/api';
 
 /* ------------------ данные заказа ------------------ */
 async function loadOrder(){
