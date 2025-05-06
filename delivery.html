@@ -98,7 +98,7 @@
   });
 
   if (orderId) {
-    fetch(`https://nlc2yl-79-127-211-217.ru.tuna.am/api/order_details?order_id=${orderId}`)
+    fetch(`https://jz92oe-79-127-211-217.ru.tuna.am/api/order_details?order_id=${orderId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -129,7 +129,7 @@
     alert("Данные о доставке сохранены");
 
     if (orderId) {
-      fetch(`https://nlc2yl-79-127-211-217.ru.tuna.am/api/update_order`, {
+      fetch(`https://jz92oe-79-127-211-217.ru.tuna.am/api/update_order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id: orderId, ...deliveryData })
