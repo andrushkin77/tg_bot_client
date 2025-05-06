@@ -60,32 +60,35 @@
   <hr>
 
   <div class="offer-details">
-    <p><strong>Цена исполнения:</strong> <span id="offerPrice">...</span> руб.</p>
+    <p><strong>Цена исполнения:</strong> <span id="offerPrice">...</span> руб.</p>
     <p><strong>Комментарий от исполнителя:</strong> <span id="offerComment">...</span></p>
   </div>
 
   <div class="buttons">
-    <button class="btn-back" onclick="goBack()">Вернуться назад</button>
+    <button class="btn-back"  onclick="goBack()">Вернуться назад</button>
     <button class="btn-accept" onclick="acceptOffer()">Принять предложение</button>
   </div>
 </div>
 
 <script>
   const tg = Telegram.WebApp; tg.expand();
-  const qs = new URLSearchParams(location.search);
+
+  /* ------------------- параметры ------------------- */
+  const qs        = new URLSearchParams(location.search);
   const partnerId = qs.get('partner_id');
   const offerId   = qs.get('offer_id');
   const orderId   = qs.get('order_id');
-  const apiBase   = 'https://4nhcmf-79-127-211-217.ru.tuna.am/api';
+  const apiBase   = 'https://4nhcmf-79-127-211-217.ru.tuna.am/api';   /* ← единый домен */
 
-  /* ---------- переменные и ссылки ---------- */
-  let photos=[], cur=0;
-  const carousel = document.getElementById('carousel');
-  const dotsBox  = document.getElementById('dots');
-  const wrap     = document.getElementById('carouselWrap');
-  const noPhotos = document.getElementById('noPhotos');
-  const prevBtn  = document.getElementById('prevBtn');
-  const nextBtn  = document.getElementById('nextBtn');
+  /* ------------------- переменные ------------------ */
+  let photos = [], cur = 0, currentPrice = 0;
+
+  const carousel  = document.getElementById('carousel');
+  const dotsBox   = document.getElementById('dots');
+  const wrap      = document.getElementById('carouselWrap');
+  const noPhotos  = document.getElementById('noPhotos');
+  const prevBtn   = document.getElementById('prevBtn');
+  const nextBtn   = document.getElementById('nextBtn');
 
   /* ---------- карусель ---------- */
   function renderCarousel(){
@@ -99,20 +102,14 @@
     if(!photos.length){ wrap.style.display='none'; noPhotos.style.display=''; return;}
     wrap.style.display=''; noPhotos.style.display='none';
 
-    /* ширина ленты и кадров */
     carousel.style.width = `${photos.length*100}%`;
-    [...carousel.children].forEach(img=>{
-      img.style.flex = `0 0 ${100/photos.length}%`;
-    });
-
+    [...carousel.children].forEach(img=> img.style.flex = `0 0 ${100/photos.length}%`);
     go(0);
   }
-
   function go(i){
     cur=i;
-    const step = 100/photos.length;
-    carousel.style.transform = `translateX(-${i*step}%)`;
-    [...dotsBox.children].forEach((d,idx)=>d.classList.toggle('active',idx===i));
+    carousel.style.transform = `translateX(-${i*(100/photos.length)}%)`;
+    [...dotsBox.children].forEach((d,idx)=>d.classList.toggle('active', idx===i));
     prevBtn.disabled = i===0;
     nextBtn.disabled = i===photos.length-1;
   }
@@ -126,30 +123,51 @@
       const p=d.partner;
       partnerName.textContent        = p.name||'—';
       partnerDescription.textContent = p.description||'';
+      try{ photos = Array.isArray(p.photos)?p.photos:JSON.parse(p.photos||'[]'); }catch{}
+      renderCarousel();
       ['map_link','vk_link','tg_link'].forEach(k=>{
         if(p[k]){
           const a=document.createElement('a'); a.href=p[k]; a.target='_blank';
-          a.innerText={map_link:'Карта',vk_link:'VK',tg_link:'Telegram'}[k];
+          a.textContent={map_link:'Карта',vk_link:'VK',tg_link:'Telegram'}[k];
           socialLinks.appendChild(a);
         }
       });
-      try{ photos = Array.isArray(p.photos)?p.photos:JSON.parse(p.photos||'[]'); }catch{}
-      renderCarousel();
-    })
-    .catch(()=>alert('Ошибка при загрузке данных партнёра.'));
+    });
 
   /* ---------- данные отклика ---------- */
   fetch(`${apiBase}/offers?order_id=${orderId}`)
     .then(r=>r.json()).then(d=>{
       const offer = d.offers?.find(o=>String(o.id)===offerId);
       if(!offer){alert('Отклик не найден');return;}
-      offerPrice.textContent   = offer.price||'0';
-      offerComment.textContent = offer.comment||'—';
-    })
-    .catch(()=>alert('Ошибка при загрузке отклика.'));
+      currentPrice              = offer.price;
+      offerPrice.textContent    = offer.price || '0';
+      offerComment.textContent  = offer.comment || '—';
+    });
 
-  function goBack()     { location.href=`offers.html?order_id=${orderId}`; }
-  function acceptOffer(){ alert('Предложение принято!'); location.href=`order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`; }
+  /* ---------- действия ---------- */
+  function goBack(){
+    location.href = `offers.html?order_id=${orderId}`;
+  }
+
+  function acceptOffer(){
+    fetch(`${apiBase}/accept_offer`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        order_id:  orderId,
+        partner_id: partnerId,
+        price:     currentPrice
+      })
+    })
+    .then(r=>r.json())
+    .then(j=>{
+      if(j.status!=='success'){
+        alert(j.message||'Ошибка'); return;
+      }
+      location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
+    })
+    .catch(()=>alert('Сетевая ошибка. Попробуйте ещё раз.'));
+  }
 </script>
 </body>
 </html>
