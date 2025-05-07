@@ -44,7 +44,10 @@ fetch(`${apiBase}/partners/${partnerId}`)
     companyName.textContent = c.name || '';
     companyDesc.textContent = c.description || '';
     /* галерея */
-    let photos=[]; try{ photos = JSON.parse(c.photos); }catch{}
+    const BASE_FILE_URL = 'https://v1j6oa-79-127-211-217.ru.tuna.am';
+    let photos=[];
+    try{ photos = Array.isArray(c.photos)?c.photos:JSON.parse(c.photos||'[]'); }catch{}
+    photos = photos.map(u=>u.startsWith('http')?u:BASE_FILE_URL+u);
     gallery.innerHTML = photos.length
       ? photos.map(u=>`<img src="${u}">`).join('')
       : '<p>Нет фотографий</p>';
