@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Детали заказа</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+ body{background:#161616;color:#fff;font-family:Arial;padding:20px}
+ img{width:100%;border-radius:10px}
+ .box{background:#1e1e1e;padding:15px;border-radius:10px}
+ .box p{margin:6px 0}
+ .btn{width:100%;margin-top:15px;padding:12px;background:#32CD32;
+      color:#fff;border:0;border-radius:6px;font-weight:bold;cursor:pointer}
+</style>
+</head>
+<body>
+<button style="background:none;border:0;color:#32CD32;
+               text-decoration:underline;cursor:pointer"
+        onclick="history.back()">← Назад</button>
+<h2 style="text-align:center;margin-bottom:15px">Детали заказа</h2>
+<div class="box" id="content">Загрузка…</div>
+
+<script>
+const API = ' https://bt9o01-169-150-209-165.ru.tuna.am/api';
+const id  = new URLSearchParams(location.search).get('order_id');
+
+fetch(`${API}/order_details?order_id=${id}`)
+  .then(r=>r.json()).then(d=>{
+    if(d.status!=='success'){alert(d.message);return;}
+    const o = d.order;
+    content.innerHTML = `
+      <img src="${o.image_url}" alt="Фото">
+      <p><strong>Композиция:</strong> ${o.description}</p>
+      <p><strong>Пожелания:</strong> ${o.wishes||'—'}</p>
+      <p><strong>Цена:</strong> ${o.final_price||'—'} ₽</p>
+      <p><strong>Исполнитель:</strong> ${o.partner_name||'—'}</p>
+      <p><strong>Адрес:</strong> ${o.delivery_address||'—'}</p>
+      <p><strong>Телефон:</strong> ${o.recipient_phone||'—'}</p>
+      <button class="btn" onclick="openPartner(${o.selected_partner_id})">
+        Профиль исполнителя
+      </button>`;
+  });
+
+function openPartner(pid){
+  if(!pid){alert('Исполнитель не выбран');return;}
+  location.href=`executor_profile.html?partner_id=${pid}&order_id=${id}`;
+}
+</script>
+</body>
+</html>
