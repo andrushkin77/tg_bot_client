@@ -17,17 +17,20 @@
     .details-btn{background:#555;color:#fff;margin-top:6px}
     .choose-btn {background:#32CD32;color:#fff}
     .no-offers{text-align:center;margin-top:20px}
+
   </style>
 </head>
 <body>
 <div class="container">
   <h2>Предложения от партнёров</h2>
   <div id="offersContainer">Загрузка…</div>
+  <div id="dbg" class="debug" style="display:none"></div>
 </div>
 
 <script>
   const tg = Telegram.WebApp; tg.expand();
 
+  /* ───────── параметры ───────── */
   const rawId  = new URLSearchParams(location.search).get('order_id') ?? '';
   const orderId = parseInt(rawId.trim(), 10);
   if (!orderId) {
@@ -36,11 +39,10 @@
     throw new Error('Bad order_id');
   }
 
+  /* ─────── ваш домен без пробелов ─────── */
   const apiBase = 'https://ytvybw-169-150-209-165.ru.tuna.am/api';
 
-  // 🔇 отключили debug
-  // function debug(text){}
-
+  /* ───────── принять предложение ───────── */
   function acceptOffer(pid, price){
     fetch(`${apiBase}/accept_offer`,{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -49,21 +51,28 @@
     .then(r=>r.json())
     .then(j=>{
       if(j.status!=='success'){ alert(j.message||'Ошибка'); return; }
-      location.href = `order_checkout.html?order_id=${orderId}&partner_id=${pid}`;
+      location.href =
+        `order_checkout.html?order_id=${orderId}&partner_id=${pid}`;
     })
     .catch(()=>alert('Сетевая ошибка. Попробуйте ещё раз.'));
   }
 
+  /* ───────── детальная страница ───────── */
   const viewDetails=(pid,offId)=>
     location.href =
       `order_detail_client.html?partner_id=${pid}&offer_id=${offId}&order_id=${orderId}`;
 
+  /* ───────── загрузка откликов ───────── */
   function loadOffers(){
     const url = `${apiBase}/offers?order_id=${orderId}`;
+    debug('GET '+url);
 
     fetch(url)
-      .then(r=>r.json())
-      .then(data=>{
+      .then(async r=>{
+        debug('HTTP '+r.status);
+        const data = await r.json();
+        debug(JSON.stringify(data,null,2));
+
         const box = document.getElementById('offersContainer');
         box.innerHTML = '';
 
@@ -88,9 +97,10 @@
           box.appendChild(div);
         });
       })
-      .catch(()=>{
+      .catch(e=>{
         document.getElementById('offersContainer')
                 .innerText='Ошибка загрузки предложений.';
+        debug('Fetch error: '+e);
       });
   }
   loadOffers();
