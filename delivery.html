@@ -2,154 +2,121 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Информация о доставке</title>
+  <title>Информация о доставке</title>
+
+  <!-- Telegram Web‑App JS -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- ➋ Маска для телефона — 2 KB -->
+  <script src="https://unpkg.com/imask"></script>
+
   <style>
-    body {
-      background-color: #161616;
-      color: white;
-      font-family: Arial, sans-serif;
-      margin: 0; 
-      padding: 20px;
+    /* ─────────────────  базовый стиль  ───────────────── */
+    body{
+      background:#161616;color:#fff;font-family:Arial,sans-serif;margin:0;padding:20px
     }
-    .container {
-      max-width: 400px;
-      margin: 0 auto;
-      background: #1e1e1e;
-      padding: 20px;
-      border-radius: 10px;
-      position: relative;
+    .container{
+      max-width:400px;margin:0 auto;background:#1e1e1e;padding:20px;
+      border-radius:10px
     }
-    h2 {
-      margin-bottom: 15px; 
-      font-size: 20px;
-      text-align: center;
+    h2{margin:0 0 15px;font-size:20px;text-align:center}
+
+    label{display:block;margin-top:12px}
+    input,button{
+      width:100%;padding:10px;margin-top:6px;border:none;border-radius:5px
     }
-    label {
-      margin-top: 10px;
-      display: block;
-    }
-    input, button {
-      width: 100%; 
-      padding: 10px; 
-      margin-top: 10px; 
-      border: none; 
-      border-radius: 5px;
-    }
-    input {
-      background: #292929; 
-      color: white;
-    }
-    button {
-      background: #32CD32; 
-      color: white; 
-      font-weight: bold; 
-      margin-top: 20px;
-    }
-    .back-button {
-      position: fixed; 
-      top: 10px; 
-      left: 10px; 
-      z-index: 1000; 
-      background: none;
-      color: #32CD32; 
-      border: none; 
-      font-size: 16px; 
-      text-decoration: underline; 
-      cursor: pointer; 
-      padding: 0;
-    }
+    input{background:#292929;color:#fff}
+
+    /* ─────────────────  кнопки  ───────────────── */
+    button.primary{background:#32CD32;color:#fff;font-weight:bold;margin-top:20px}
+    button.secondary{background:#555;color:#fff;font-weight:bold;margin-top:10px}
   </style>
 </head>
 <body>
-<button class="back-button" id="backBtn">← Назад</button>
-<div class="container">
-    <h2>Информация о доставке</h2>
+  <div class="container">
+    <h2>Информация о доставке</h2>
+
     <label>Город</label>
-    <input type="text" id="city" value="">
+    <input type="text" id="city">
+
     <label>Адрес</label>
     <input type="text" id="address">
+
     <label>Имя</label>
     <input type="text" id="recipient_name">
+
     <label>Телефон</label>
-    <input type="text" id="recipient_phone">
-    <button id="saveBtn">Сохранить</button>
-</div>
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const orderId = urlParams.get('order_id'); 
-  const partnerId = urlParams.get('partner_id');
+    <input type="text" id="recipient_phone" placeholder="+7 ___ ___‑__‑__">
 
-  const localData = localStorage.getItem('deliveryData');
-  if (localData) {
-    const parsed = JSON.parse(localData);
-    document.getElementById('city').value = parsed.city || '';
-    document.getElementById('address').value = parsed.address || '';
-    document.getElementById('recipient_name').value = parsed.recipient_name || '';
-    document.getElementById('recipient_phone').value = parsed.recipient_phone || '';
-  }
+    <button id="saveBtn"  class="primary">Сохранить</button>
+    <button id="backBtn"  class="secondary">← Назад</button>
+  </div>
 
-  document.getElementById('backBtn').addEventListener('click', () => {
-    if (orderId && partnerId) {
-      window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
-    } else {
-      window.history.back();
+  <script>
+    const tg = Telegram.WebApp; tg.expand();
+
+    /* ──────────────── query‑параметры ──────────────── */
+    const qs        = new URLSearchParams(location.search);
+    const orderId   = qs.get('order_id');
+    const partnerId = qs.get('partner_id');
+
+    /* ──────────────── телефон с маской ─────────────── */
+    const phoneMask = IMask(
+      document.getElementById('recipient_phone'),
+      { mask: '+{7} 000 000‑00‑00', lazy:false }
+    );
+
+    /* ─────────────── восстановление из localStorage ─────────────── */
+    const LS_KEY = 'deliveryData';
+    const local  = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    Object.entries({
+      city:local.city,address:local.address,
+      recipient_name:local.recipient_name,
+      recipient_phone:local.recipient_phone
+    }).forEach(([id,val])=>{ if(val) document.getElementById(id).value = val });
+
+    /* ─────────────── подгружаем из БД, если order_id есть ───────── */
+    if(orderId){
+      fetch(`https://rvo1ci-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+        .then(r=>r.json()).then(j=>{
+          if(j.status!=='success') return;
+          const o=j.order;
+          ['city','delivery_address','recipient_name','recipient_phone'].forEach(k=>{
+            const map = {delivery_address:'address'};    // соответствие полей
+            const el  = document.getElementById(map[k]||k);
+            if(el && !el.value) el.value = o[k]||'';
+          });
+        });
     }
-  });
 
-  if (orderId) {
-    fetch(` https://rvo1ci-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "success") {
-          const order = data.order;
-          // Если в localStorage нет данных, подгружаем из заказа
-          const localDataAgain = localStorage.getItem('deliveryData');
-          if (!localDataAgain) {
-            document.getElementById('city').value = order.city || '';
-            document.getElementById('address').value = order.delivery_address || '';
-            document.getElementById('recipient_name').value = order.recipient_name || '';
-            document.getElementById('recipient_phone').value = order.recipient_phone || '';
-          }
-        }
-      })
-      .catch(err => console.error("Ошибка загрузки доставки:", err));
-  }
+    /* ─────────────── сохранить ─────────────── */
+    saveBtn.onclick = ()=>{
+      const data = {
+        city:city.value,address:address.value,
+        recipient_name:recipient_name.value,
+        recipient_phone:recipient_phone.value
+      };
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+      alert('Данные сохранены');
 
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    const deliveryData = {
-      city: document.getElementById('city').value,
-      address: document.getElementById('address').value,
-      recipient_name: document.getElementById('recipient_name').value,
-      recipient_phone: document.getElementById('recipient_phone').value
+      if(orderId){
+        fetch('https://rvo1ci-169-150-209-165.ru.tuna.am/api/update_order',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({order_id:orderId, ...data})
+        })
+        .then(r=>r.json()).then(j=>{
+          if(j.status!=='success') alert('Ошибка: '+j.message);
+        })
+        .catch(()=>alert('Сетевая ошибка'));
+      }
     };
-    // Сохраняем в localStorage
-    localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
 
-    alert("Данные о доставке сохранены");
-
-    if (orderId) {
-      fetch(` https://rvo1ci-169-150-209-165.ru.tuna.am/api/update_order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order_id: orderId, ...deliveryData })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "success") {
-          alert("Данные о доставке также обновлены на сервере");
-          // Остаёмся на странице, либо возвращаемся на "Ваш заказ"
-          // window.location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId || ''}`;
-        } else {
-          alert("Ошибка при сохранении: " + data.message);
-        }
-      })
-      .catch(err => {
-        alert("Сетевая ошибка при сохранении");
-        console.error(err);
-      });
-    }
-  });
-</script>
+    /* ─────────────── Назад ─────────────── */
+    backBtn.onclick = () =>{
+      orderId && partnerId
+        ? location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`
+        : history.back();
+    };
+  </script>
 </body>
 </html>
