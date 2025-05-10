@@ -3,39 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <title>Детали заказа</title>
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     body{background:#161616;color:#fff;font-family:Arial,sans-serif;padding:20px}
-    .container{max-width:800px;margin:0 auto;background:#1e1e1e;padding:20px;border-radius:10px}
+    .container{max-width:800px;margin:0 auto;background:#1e1e1e;
+               padding:20px;border-radius:10px}
     h2{text-align:center;margin-bottom:20px}
 
-    /* ----------  Ф О Т О Л Е Н Т А  ---------- */
-    .gallery{
-      display:flex;gap:8px;overflow-x:auto;
-      scroll-snap-type:x mandatory;margin-bottom:20px
-    }
+    /* ─────── галерея с прокруткой ─────── */
+    .gallery-wrapper{position:relative;margin-bottom:20px}
+    .gallery{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory}
+    .gallery::-webkit-scrollbar{display:none}
     .gallery img{
       height:220px;border-radius:10px;object-fit:cover;flex-shrink:0;
       scroll-snap-align:center
     }
-    /* ---------------------------------------- */
+    .arrow{
+      position:absolute;top:50%;transform:translateY(-50%);
+      width:32px;height:32px;border:none;border-radius:50%;
+      background:rgba(0,0,0,.4);color:#fff;font-size:20px;
+      cursor:pointer;display:flex;align-items:center;justify-content:center
+    }
+    .arrow.left {left:-12px}
+    .arrow.right{right:-12px}
 
+    /* ─────── остальной дизайн без изменений ─────── */
     .partner-info{margin-bottom:20px}
-    .partner-info h3{margin-bottom:5px}
+    .partner-info h3{margin:0 0 5px}
     .partner-description{font-size:14px;margin-bottom:10px}
-
-    .social-links a{display:inline-block;margin-right:10px;padding:5px 10px;
+    .social-links a{display:inline-block;margin:0 10px 10px 0;padding:5px 10px;
                     border:1px solid #32CD32;border-radius:5px;text-decoration:none;
                     color:#32CD32;font-size:14px}
-
     hr{border:0;border-top:1px solid #555;margin:20px 0}
-
     .offer-details{margin-bottom:20px;font-size:16px}
-    .offer-details p{margin-bottom:5px}
-
-    .buttons{display:flex;justify-content:space-between}
-    .buttons button{flex-basis:48%;padding:10px;font-size:16px;border:none;
-                    border-radius:5px;cursor:pointer}
+    .offer-details p{margin:0 0 5px}
+    .buttons{display:flex;gap:10px}
+    .buttons button{flex:1;padding:10px;font-size:16px;border:none;border-radius:5px;cursor:pointer}
     .btn-back{background:#555;color:#fff}
     .btn-accept{background:#32CD32;color:#fff}
   </style>
@@ -44,9 +49,13 @@
 <div class="container">
   <h2>Детали заказа</h2>
 
-  <!-- фотолента -->
-  <div id="galleryBox" class="gallery" style="display:none"></div>
-  <p id="noPhotos" style="text-align:center;display:none">Нет фотографий</p>
+  <!-- галерея -->
+  <div class="gallery-wrapper">
+    <button class="arrow left"  onclick="scrollGallery(-1)">‹</button>
+    <div id="galleryBox" class="gallery" style="display:none"></div>
+    <button class="arrow right" onclick="scrollGallery(1)">›</button>
+  </div>
+  <p id="noPhotos" style="text-align:center;display:none">Нет фотографий</p>
 
   <div class="partner-info">
     <h3 id="partnerName">Название компании</h3>
@@ -58,101 +67,80 @@
   <hr>
 
   <div class="offer-details">
-    <p><strong>Цена исполнения:</strong> <span id="offerPrice">...</span> руб.</p>
-    <p><strong>Комментарий от исполнителя:</strong> <span id="offerComment">...</span></p>
+    <p><strong>Цена исполнения:</strong> <span id="offerPrice">…</span> руб.</p>
+    <p><strong>Комментарий от исполнителя:</strong> <span id="offerComment">…</span></p>
   </div>
 
   <div class="buttons">
-    <button class="btn-back"  onclick="goBack()">Вернуться назад</button>
-    <button class="btn-accept" onclick="acceptOffer()">Принять предложение</button>
+    <button class="btn-back"  onclick="goBack()">Вернуться</button>
+    <button class="btn-accept" onclick="acceptOffer()">Принять</button>
   </div>
 </div>
 
 <script>
   const tg = Telegram.WebApp; tg.expand();
 
-  /* ------------------- параметры ------------------- */
+  /* ────────── параметры ────────── */
   const qs        = new URLSearchParams(location.search);
   const partnerId = qs.get('partner_id');
   const offerId   = qs.get('offer_id');
   const orderId   = qs.get('order_id');
-  const apiBase   = ' https://rvo1ci-169-150-209-165.ru.tuna.am/api';   /* ← единый домен */
+  const apiBase   = 'https://rvo1ci-169-150-209-165.ru.tuna.am/api';
 
-  /* ------------------- util ------------------------ */
-  /* стабильный домен для файлов (отрезаем   /api) */
-  const BASE_FILE_URL = apiBase.replace(/\/api\s*$/,'');
-  const fullUrl = u => u?.startsWith('http') ? u : BASE_FILE_URL + u;
+  const BASE_FILE_URL = apiBase.replace(/\/api$/,'');
+  const full = u=>u?.startsWith('http')?u:BASE_FILE_URL+u;
 
-  /* ------------------- переменные ------------------ */
   let currentPrice = 0;
 
-  const galleryBox = document.getElementById('galleryBox');
-  const noPhotos   = document.getElementById('noPhotos');
+  const box   = document.getElementById('galleryBox');
+  const noPic = document.getElementById('noPhotos');
 
-  /* ---------- данные партнёра ---------- */
+  /* ────────── партнёр ────────── */
   fetch(`${apiBase}/partners/${partnerId}`)
     .then(r=>r.json()).then(d=>{
-      if(d.status!=='success'){alert(d.message);return;}
+      if(d.status!=='success') {alert(d.message);return;}
       const p=d.partner;
       partnerName.textContent        = p.name||'—';
       partnerDescription.textContent = p.description||'';
 
-      /* фотолента */
       let photos=[];
-      try{ photos = Array.isArray(p.photos)?p.photos:JSON.parse(p.photos||'[]'); }catch{}
-      photos = photos.map(fullUrl);
-      if(!photos.length){
-        noPhotos.style.display='';
-      }else{
-        galleryBox.style.display='';
-        photos.forEach(u=>{
-          const img=document.createElement('img'); img.src=u; galleryBox.appendChild(img);
-        });
-      }
+      try{photos = Array.isArray(p.photos)?p.photos:JSON.parse(p.photos||'[]');}catch{}
+      photos = photos.map(full);
 
-      /* соц‑ссылки */
-      ['map_link','vk_link','tg_link'].forEach(k=>{
-        if(p[k]){
-          const a=document.createElement('a'); a.href=p[k]; a.target='_blank';
-          a.textContent={map_link:'Карта',vk_link:'VK',tg_link:'Telegram'}[k];
-          socialLinks.appendChild(a);
-        }
+      if(!photos.length){ noPic.style.display=''; return; }
+
+      box.style.display='';
+      photos.forEach(u=>{
+        const img=document.createElement('img'); img.src=u; box.appendChild(img);
       });
     });
 
-  /* ---------- данные отклика ---------- */
+  /* ────────── оффер ────────── */
   fetch(`${apiBase}/offers?order_id=${orderId}`)
     .then(r=>r.json()).then(d=>{
-      const offer = d.offers?.find(o=>String(o.id)===offerId);
-      if(!offer){alert('Отклик не найден');return;}
-      currentPrice              = offer.price;
-      offerPrice.textContent    = offer.price || '0';
-      offerComment.textContent  = offer.comment || '—';
+      const off = d.offers?.find(o=>String(o.id)===offerId);
+      if(!off){alert('Оффер не найден');return;}
+      currentPrice          = off.price;
+      offerPrice.textContent= off.price;
+      offerComment.textContent = off.comment||'—';
     });
 
-  /* ---------- действия ---------- */
-  function goBack(){
-    location.href = `offers.html?order_id=${orderId}`;
+  /* ────────── функции ────────── */
+  function scrollGallery(dir){
+    const w = box.firstElementChild?.offsetWidth || 0;
+    box.scrollBy({left: dir*(w+8), behavior:'smooth'});
   }
-
+  function goBack(){ location.href=`offers.html?order_id=${orderId}`; }
   function acceptOffer(){
     fetch(`${apiBase}/accept_offer`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        order_id:  orderId,
-        partner_id: partnerId,
-        price:     currentPrice
-      })
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({order_id:orderId,partner_id:partnerId,price:currentPrice})
     })
-    .then(r=>r.json())
-    .then(j=>{
-      if(j.status!=='success'){
-        alert(j.message||'Ошибка'); return;
-      }
-      location.href = `order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
+    .then(r=>r.json()).then(j=>{
+      if(j.status!=='success'){alert(j.message||'Ошибка');return;}
+      location.href=`order_checkout.html?order_id=${orderId}&partner_id=${partnerId}`;
     })
-    .catch(()=>alert('Сетевая ошибка. Попробуйте ещё раз.'));
+    .catch(()=>alert('Сетевая ошибка'));
   }
 </script>
 </body>
