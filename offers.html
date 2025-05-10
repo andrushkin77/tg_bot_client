@@ -46,12 +46,11 @@
   const apiBase = 'https://dx61gb-169-150-209-165.ru.tuna.am/api';
 
   /* ───────── показать отладку ───────── */
-  function debug(text){
-    const dbg = document.getElementById('dbg');
-    dbg.style.display = '';
-    dbg.textContent += text + '\n';
-  }
-
+  //function debug(text){
+    //const dbg = document.getElementById('dbg');
+    //dbg.style.display = '';
+    //dbg.textContent += text + '\n';
+  //}
   /* ───────── принять предложение ───────── */
   function acceptOffer(pid, price){
     fetch(`${apiBase}/accept_offer`,{
