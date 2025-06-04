@@ -77,7 +77,7 @@
 
     /* ─────────────── подгружаем из БД, если order_id есть ───────── */
     if(orderId){
-      fetch(`https://ytvybw-169-150-209-165.ru.tuna.am/api/order_details?order_id=${orderId}`)
+      fetch(`https://yourballoon.ru/api/order_details?order_id=${orderId}`)
         .then(r=>r.json()).then(j=>{
           if(j.status!=='success') return;
           const o=j.order;
@@ -100,7 +100,7 @@
       alert('Данные сохранены');
 
       if(orderId){
-        fetch('https://ytvybw-169-150-209-165.ru.tuna.am/api/update_order',{
+        fetch('https://yourballoon.ru/api/update_order',{
           method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({order_id:orderId, ...data})
         })
